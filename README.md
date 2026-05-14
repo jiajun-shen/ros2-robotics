@@ -11,23 +11,35 @@
 
 ## Project Roadmap
 
-1. `ros2_job_ready_basics`  
+Project folders live under `projects/`. ROS 2 packages that need to be built with `colcon` live under `src/`.
+
+1. [`projects/01_ros2_core_basics`](projects/01_ros2_core_basics)  
    ROS 2 核心基础：node、topic、publisher、subscriber、service、action、parameter、launch。
 
-2. Mini AMR Simulation  
+2. [`projects/02_mini_amr_simulation`](projects/02_mini_amr_simulation)  
    差速移动机器人仿真：URDF/xacro、RViz、Gazebo、ros2_control、传感器 topic。
 
-3. Warehouse Navigation  
+3. [`projects/03_warehouse_navigation`](projects/03_warehouse_navigation)  
    仓储机器人自主导航：SLAM、Nav2、地图、定位、路径规划、避障。
 
-4. Perception To Action  
+4. [`projects/04_perception_to_action`](projects/04_perception_to_action)  
    感知驱动行为：相机 topic、OpenCV、目标检测、检测结果转机器人动作。
 
-5. Manipulation Pick And Place  
+5. [`projects/05_manipulation_pick_and_place`](projects/05_manipulation_pick_and_place)  
    机械臂抓取放置：MoveIt 2、运动规划、planning scene、夹爪控制。
 
-6. Embodied AI Task Executor  
+6. [`projects/06_embodied_ai_task_executor`](projects/06_embodied_ai_task_executor)  
    具身智能任务执行：自然语言目标解析，调用导航、感知、操作模块完成任务。
+
+## Repository Structure
+
+```text
+ros2_ws/
+├── projects/   # Portfolio project folders and writeups
+├── src/        # Buildable ROS 2 packages
+├── docs/       # Study notes
+└── scripts/    # Verification scripts
+```
 
 ## Current Project
 
