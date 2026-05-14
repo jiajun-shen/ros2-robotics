@@ -37,6 +37,14 @@ The first package is:
 src/ros2_job_ready_basics
 ```
 
+It covers:
+
+- topic publisher/subscriber
+- runtime parameters
+- service server/client
+- action server/client
+- launch files
+
 Build:
 
 ```bash
@@ -63,6 +71,35 @@ Inspect ROS graph:
 ros2 node list
 ros2 topic list
 ros2 topic echo /career_goal
+```
+
+Run parameter example:
+
+```bash
+ros2 run ros2_job_ready_basics robot_status_publisher --ros-args \
+  -p robot_name:=shenbot \
+  -p current_task:=warehouse_demo \
+  -p battery_level_percent:=80
+```
+
+Run service example:
+
+```bash
+ros2 run ros2_job_ready_basics mission_service_server
+ros2 run ros2_job_ready_basics mission_service_client start
+```
+
+Run action example:
+
+```bash
+ros2 run ros2_job_ready_basics fibonacci_action_server
+ros2 run ros2_job_ready_basics fibonacci_action_client 8
+```
+
+Run launch example:
+
+```bash
+ros2 launch ros2_job_ready_basics core_basics.launch.py
 ```
 
 ## Learning Goal

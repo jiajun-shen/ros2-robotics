@@ -69,6 +69,12 @@ ros2 topic echo /career_goal
 ros2 topic info /career_goal
 ```
 
+继续学习：
+
+```text
+docs/02_parameters_services_actions_launch.md
+```
+
 ## 面试表达
 
 我用 ROS 2 Jazzy 和 Python `rclpy` 实现了一个基础通信包，包含 publisher 和 subscriber 节点，并使用 ROS 2 CLI 检查节点图、topic 和消息流。
