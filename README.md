@@ -11,7 +11,13 @@
 
 ## Project Roadmap
 
-Project folders live under `projects/`. ROS 2 packages that need to be built with `colcon` live under `src/`.
+每个项目都放在 `projects/` 下面。每个项目文件夹里都会有：
+
+- `README.md`：项目目标、运行方式、简历表达。
+- `lessons/`：中文教案和复习笔记。
+- `src/`：这个项目对应的 ROS 2 代码。
+
+为了让 `colcon build` 继续保持 ROS 2 标准习惯，根目录的 `src/` 会保留指向项目代码的入口。
 
 1. [`projects/01_ros2_core_basics`](projects/01_ros2_core_basics)  
    ROS 2 核心基础：node、topic、publisher、subscriber、service、action、parameter、launch。
@@ -35,10 +41,17 @@ Project folders live under `projects/`. ROS 2 packages that need to be built wit
 
 ```text
 ros2_ws/
-├── projects/   # Portfolio project folders and writeups
-├── src/        # Buildable ROS 2 packages
-├── docs/       # Study notes
-└── scripts/    # Verification scripts
+├── projects/
+│   ├── 01_ros2_core_basics/
+│   │   ├── lessons/   # 中文教案
+│   │   ├── scripts/   # 项目验证脚本
+│   │   └── src/       # 本项目 ROS 2 代码
+│   ├── 02_mini_amr_simulation/
+│   ├── 03_warehouse_navigation/
+│   ├── 04_perception_to_action/
+│   ├── 05_manipulation_pick_and_place/
+│   └── 06_embodied_ai_task_executor/
+└── src/                # colcon build 入口，链接到各项目的 ROS 包
 ```
 
 ## Current Project
@@ -46,8 +59,16 @@ ros2_ws/
 The first package is:
 
 ```bash
+projects/01_ros2_core_basics/src/ros2_job_ready_basics
+```
+
+For normal ROS 2 commands, you can still use the workspace-level package path:
+
+```bash
 src/ros2_job_ready_basics
 ```
+
+This path is a link to the project folder code.
 
 It covers:
 
@@ -112,6 +133,12 @@ Run launch example:
 
 ```bash
 ros2 launch ros2_job_ready_basics core_basics.launch.py
+```
+
+Verify Project 01:
+
+```bash
+projects/01_ros2_core_basics/scripts/verify_core_basics.sh
 ```
 
 ## Learning Goal

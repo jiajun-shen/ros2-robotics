@@ -5,6 +5,12 @@
 In progress. The buildable ROS 2 package is:
 
 ```text
+src/ros2_job_ready_basics
+```
+
+The workspace-level path below is a link to this same package, so `colcon build` still works normally:
+
+```text
 ../../src/ros2_job_ready_basics
 ```
 
@@ -24,6 +30,20 @@ Build a clean beginner ROS 2 package that demonstrates the core communication pa
 - Launch file
 - ROS 2 CLI inspection commands
 
+## Folder Layout
+
+```text
+01_ros2_core_basics/
+├── README.md
+├── lessons/
+│   ├── 01_ros2_core_basics.md
+│   └── 02_parameters_services_actions_launch.md
+├── scripts/
+│   └── verify_core_basics.sh
+└── src/
+    └── ros2_job_ready_basics/
+```
+
 ## Build
 
 ```bash
@@ -36,8 +56,17 @@ source install/setup.bash
 
 ```bash
 cd ~/ros2_ws
-./scripts/verify_core_basics.sh
+projects/01_ros2_core_basics/scripts/verify_core_basics.sh
 ```
+
+## Lessons
+
+- [01_ros2_core_basics.md](lessons/01_ros2_core_basics.md)
+- [02_parameters_services_actions_launch.md](lessons/02_parameters_services_actions_launch.md)
+
+## Code
+
+- [ros2_job_ready_basics](src/ros2_job_ready_basics)
 
 ## Resume Bullet
 

@@ -72,7 +72,7 @@ ros2 topic info /career_goal
 继续学习：
 
 ```text
-docs/02_parameters_services_actions_launch.md
+projects/01_ros2_core_basics/lessons/02_parameters_services_actions_launch.md
 ```
 
 ## 面试表达
