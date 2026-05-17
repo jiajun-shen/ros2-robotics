@@ -1,6 +1,10 @@
 # Lessons
 
-这里以后放 Project 02 的中文教案。
+这里放 Project 02 的中文教案。
+
+当前教案：
+
+- [01_urdf_robot_model_rviz.md](01_urdf_robot_model_rviz.md)
 
 计划学习顺序：
 

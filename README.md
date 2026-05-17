@@ -141,6 +141,29 @@ Verify Project 01:
 projects/01_ros2_core_basics/scripts/verify_core_basics.sh
 ```
 
+## Current Project 02
+
+The first package for the mini AMR project is:
+
+```bash
+projects/02_mini_amr_simulation/src/mini_amr_description
+```
+
+Run the robot model in RViz:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch mini_amr_description display.launch.py
+```
+
+Terminal-only verification:
+
+```bash
+projects/02_mini_amr_simulation/scripts/verify_description.sh
+```
+
 ## Learning Goal
 
 Build practical ROS 2 projects that can be discussed in robotics software engineering interviews.

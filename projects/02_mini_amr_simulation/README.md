@@ -2,7 +2,13 @@
 
 ## Status
 
-Planned.
+In progress.
+
+Current package:
+
+```text
+src/mini_amr_description
+```
 
 ## Goal
 
@@ -25,6 +31,57 @@ Build a simulated differential-drive autonomous mobile robot, similar to a small
 - A launch file that starts the robot in simulation
 - RViz configuration for visualizing the robot and sensor data
 - README screenshots and run commands
+
+## Current Folder Layout
+
+```text
+02_mini_amr_simulation/
+├── README.md
+├── lessons/
+│   └── 01_urdf_robot_model_rviz.md
+├── scripts/
+│   └── verify_description.sh
+└── src/
+    └── mini_amr_description/
+```
+
+## Lesson 01: Robot Model In RViz
+
+This first step creates a visible AMR model using URDF, `robot_state_publisher`, TF, and RViz.
+
+Build:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+```
+
+Run with RViz:
+
+```bash
+ros2 launch mini_amr_description display.launch.py
+```
+
+Run without RViz for terminal-only testing:
+
+```bash
+ros2 launch mini_amr_description display.launch.py use_rviz:=false
+```
+
+Verify:
+
+```bash
+projects/02_mini_amr_simulation/scripts/verify_description.sh
+```
+
+Lesson:
+
+- [01_urdf_robot_model_rviz.md](lessons/01_urdf_robot_model_rviz.md)
+
+Code:
+
+- [mini_amr_description](src/mini_amr_description)
 
 ## Resume Bullet
 
