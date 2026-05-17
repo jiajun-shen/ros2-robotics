@@ -8,6 +8,7 @@ Current package:
 
 ```text
 src/mini_amr_description
+src/mini_amr_motion
 ```
 
 ## Goal
@@ -39,10 +40,13 @@ Build a simulated differential-drive autonomous mobile robot, similar to a small
 ├── README.md
 ├── lessons/
 │   └── 01_urdf_robot_model_rviz.md
+│   └── 02_odometry_and_tf_motion.md
 ├── scripts/
 │   └── verify_description.sh
+│   └── verify_motion.sh
 └── src/
     └── mini_amr_description/
+    └── mini_amr_motion/
 ```
 
 ## Lesson 01: Robot Model In RViz
@@ -82,6 +86,45 @@ Lesson:
 Code:
 
 - [mini_amr_description](src/mini_amr_description)
+
+## Lesson 02: Odometry And TF Motion
+
+This step adds a Python node that publishes `/odom` and the `odom -> base_footprint` TF transform, so the robot can move in RViz.
+
+Run with RViz:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch mini_amr_motion moving_display.launch.py
+```
+
+Run without RViz for terminal-only testing:
+
+```bash
+ros2 launch mini_amr_motion moving_display.launch.py use_rviz:=false
+```
+
+Inspect odometry:
+
+```bash
+ros2 topic echo /odom --once
+```
+
+Verify:
+
+```bash
+projects/02_mini_amr_simulation/scripts/verify_motion.sh
+```
+
+Lesson:
+
+- [02_odometry_and_tf_motion.md](lessons/02_odometry_and_tf_motion.md)
+
+Code:
+
+- [mini_amr_motion](src/mini_amr_motion)
 
 ## Resume Bullet
 

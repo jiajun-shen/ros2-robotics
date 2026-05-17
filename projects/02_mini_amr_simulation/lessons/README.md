@@ -5,6 +5,7 @@
 当前教案：
 
 - [01_urdf_robot_model_rviz.md](01_urdf_robot_model_rviz.md)
+- [02_odometry_and_tf_motion.md](02_odometry_and_tf_motion.md)
 
 计划学习顺序：
 

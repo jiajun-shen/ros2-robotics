@@ -5,6 +5,7 @@
 当前包：
 
 - `mini_amr_description`：URDF 小车模型、robot_state_publisher launch、RViz 配置。
+- `mini_amr_motion`：发布 `/odom` 和 `odom -> base_footprint` TF，让小车在 RViz 里运动。
 
 计划中的后续包可能包括：
 

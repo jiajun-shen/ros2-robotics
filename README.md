@@ -147,6 +147,7 @@ The first package for the mini AMR project is:
 
 ```bash
 projects/02_mini_amr_simulation/src/mini_amr_description
+projects/02_mini_amr_simulation/src/mini_amr_motion
 ```
 
 Run the robot model in RViz:
@@ -162,6 +163,7 @@ Terminal-only verification:
 
 ```bash
 projects/02_mini_amr_simulation/scripts/verify_description.sh
+projects/02_mini_amr_simulation/scripts/verify_motion.sh
 ```
 
 ## Learning Goal
