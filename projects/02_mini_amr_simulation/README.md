@@ -259,6 +259,7 @@ Lesson:
 
 - [05_lidar_safety_filter.md](lessons/05_lidar_safety_filter.md)
 - [06_world_obstacles_and_realistic_safety.md](lessons/06_world_obstacles_and_realistic_safety.md)
+- [07_launch_parameters_obstacle_tuning.md](lessons/07_launch_parameters_obstacle_tuning.md)
 
 ## Lesson 06: World Obstacles And Realistic Safety
 
@@ -292,6 +293,18 @@ Verify:
 
 ```bash
 projects/02_mini_amr_simulation/scripts/verify_safety_filter.sh
+```
+
+Launch with a different obstacle layout:
+
+```bash
+ros2 launch mini_amr_sensors safety_display.launch.py obstacle_layout:=wide_gap
+```
+
+Tune the safety threshold:
+
+```bash
+ros2 launch mini_amr_sensors safety_display.launch.py obstacle_layout:=slalom stop_distance_m:=0.80
 ```
 
 Code:

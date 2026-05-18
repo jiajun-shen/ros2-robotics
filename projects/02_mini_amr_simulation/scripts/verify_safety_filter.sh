@@ -24,7 +24,11 @@ source install/setup.bash
 set -u
 
 echo "==> Starting safety display launch without RViz"
-ros2 launch mini_amr_sensors safety_display.launch.py use_rviz:=false \
+ros2 launch mini_amr_sensors safety_display.launch.py \
+  use_rviz:=false \
+  obstacle_layout:=single_front \
+  stop_distance_m:=0.65 \
+  front_angle_rad:=0.45 \
   > "${log_dir}/safety_display.log" 2>&1 &
 launch_pid="$!"
 
@@ -67,6 +71,7 @@ wait "${publisher_pid}" 2>/dev/null || true
 
 grep -q 'lidar_safety_filter_node' "${log_dir}/safety_display.log"
 grep -q 'world_lidar_node' "${log_dir}/safety_display.log"
+grep -q 'layout=single_front' "${log_dir}/safety_display.log"
 grep -q 'cmd_vel_motion_node' "${log_dir}/safety_display.log"
 
 # YAML output spans lines, so check the linear.x value in each sample.

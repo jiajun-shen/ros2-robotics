@@ -39,6 +39,18 @@ ros2 launch mini_amr_sensors sensor_display.launch.py
 ros2 launch mini_amr_sensors safety_display.launch.py
 ```
 
+切换障碍物布局：
+
+```bash
+ros2 launch mini_amr_sensors safety_display.launch.py obstacle_layout:=wide_gap
+```
+
+调安全距离：
+
+```bash
+ros2 launch mini_amr_sensors safety_display.launch.py stop_distance_m:=0.90
+```
+
 终端 2：
 
 ```bash
@@ -59,4 +71,14 @@ ros2 topic echo /cmd_vel
 ros2 topic echo /obstacles --once
 ros2 topic info /scan
 ros2 node list
+```
+
+## 可用障碍物布局
+
+```text
+single_front
+slalom
+wide_gap
+left_wall
+open
 ```

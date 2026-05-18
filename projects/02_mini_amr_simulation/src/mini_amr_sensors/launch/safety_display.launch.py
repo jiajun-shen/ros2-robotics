@@ -6,6 +6,7 @@ from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -22,12 +23,30 @@ def generate_launch_description():
         robot_description = urdf_file.read()
 
     use_rviz = LaunchConfiguration('use_rviz')
+    obstacle_layout = LaunchConfiguration('obstacle_layout')
+    stop_distance_m = LaunchConfiguration('stop_distance_m')
+    front_angle_rad = LaunchConfiguration('front_angle_rad')
 
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_rviz',
             default_value='true',
             description='Whether to start RViz.',
+        ),
+        DeclareLaunchArgument(
+            'obstacle_layout',
+            default_value='slalom',
+            description='Obstacle layout: single_front, slalom, wide_gap, left_wall, open.',
+        ),
+        DeclareLaunchArgument(
+            'stop_distance_m',
+            default_value='0.65',
+            description='Forward commands are blocked below this front obstacle distance.',
+        ),
+        DeclareLaunchArgument(
+            'front_angle_rad',
+            default_value='0.45',
+            description='Front lidar sector half-angle used by the safety filter.',
         ),
         Node(
             package='robot_state_publisher',
@@ -49,6 +68,9 @@ def generate_launch_description():
             executable='world_lidar_node',
             name='world_lidar_node',
             output='screen',
+            parameters=[{
+                'obstacle_layout': obstacle_layout,
+            }],
         ),
         Node(
             package='mini_amr_sensors',
@@ -59,8 +81,14 @@ def generate_launch_description():
                 'input_cmd_topic': 'cmd_vel_raw',
                 'output_cmd_topic': 'cmd_vel',
                 'scan_topic': 'scan',
-                'front_angle_rad': 0.45,
-                'stop_distance_m': 0.65,
+                'front_angle_rad': ParameterValue(
+                    front_angle_rad,
+                    value_type=float,
+                ),
+                'stop_distance_m': ParameterValue(
+                    stop_distance_m,
+                    value_type=float,
+                ),
             }],
         ),
         Node(

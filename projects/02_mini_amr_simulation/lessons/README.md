@@ -11,6 +11,7 @@
 - [04_fake_lidar_scan.md](04_fake_lidar_scan.md)
 - [05_lidar_safety_filter.md](05_lidar_safety_filter.md)
 - [06_world_obstacles_and_realistic_safety.md](06_world_obstacles_and_realistic_safety.md)
+- [07_launch_parameters_obstacle_tuning.md](07_launch_parameters_obstacle_tuning.md)
 
 计划学习顺序：
 
@@ -19,4 +20,5 @@
 3. 差速轮控制
 4. lidar 传感器 topic
 5. 基于 LaserScan 的安全过滤
-6. Gazebo 或 Isaac Sim 仿真
+6. launch 参数和实验配置
+7. Gazebo 或 Isaac Sim 仿真

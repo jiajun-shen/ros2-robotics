@@ -38,6 +38,7 @@ class WorldLidarNode(Node):
         self.declare_parameter('num_readings', 181)
         self.declare_parameter('lidar_offset_x_m', 0.12)
         self.declare_parameter('lidar_offset_y_m', 0.0)
+        self.declare_parameter('obstacle_layout', 'slalom')
 
         self.scan_topic = self.get_parameter('scan_topic').value
         self.obstacle_topic = self.get_parameter('obstacle_topic').value
@@ -48,6 +49,9 @@ class WorldLidarNode(Node):
         self.num_readings = int(self.get_parameter('num_readings').value)
         self.lidar_offset_x = float(self.get_parameter('lidar_offset_x_m').value)
         self.lidar_offset_y = float(self.get_parameter('lidar_offset_y_m').value)
+        self.obstacle_layout = str(
+            self.get_parameter('obstacle_layout').value
+        ).strip().lower()
 
         self.angle_min = -math.pi
         self.angle_max = math.pi
@@ -61,12 +65,8 @@ class WorldLidarNode(Node):
         self.robot_yaw = 0.0
 
         # 障碍物固定在 odom 世界坐标系中：(x, y, radius)。
-        # 第一个障碍物在车正前方，后两个障碍物放在左右侧，方便你练习绕行。
-        self.obstacles = [
-            (1.60, 0.00, 0.28),
-            (2.20, 0.85, 0.25),
-            (2.20, -0.85, 0.25),
-        ]
+        # x/y 是障碍物中心点位置，radius 是圆柱半径。
+        self.obstacles = self.build_obstacle_layout(self.obstacle_layout)
 
         self.odom_subscriber = self.create_subscription(
             Odometry,
@@ -83,8 +83,51 @@ class WorldLidarNode(Node):
         self.timer = self.create_timer(1.0 / self.scan_rate_hz, self.publish_world)
 
         self.get_logger().info(
-            f'World lidar publishing /{self.scan_topic} and /{self.obstacle_topic}'
+            f'World lidar publishing /{self.scan_topic} and /{self.obstacle_topic}; '
+            f'layout={self.obstacle_layout}, obstacles={len(self.obstacles)}'
         )
+
+    def build_obstacle_layout(self, layout_name):
+        """根据参数名创建障碍物布局，方便用 launch 参数切换练习场景。"""
+        layouts = {
+            # 只在正前方放一个障碍物，最适合初学者观察安全停车。
+            'single_front': [
+                (1.60, 0.00, 0.28),
+            ],
+
+            # 默认绕桩练习：前方一个，左右两侧各一个。
+            'slalom': [
+                (1.60, 0.00, 0.28),
+                (2.20, 0.85, 0.25),
+                (2.20, -0.85, 0.25),
+            ],
+
+            # 中间留出通道，让你练习从两个障碍物之间穿过去。
+            'wide_gap': [
+                (1.55, 0.55, 0.25),
+                (1.55, -0.55, 0.25),
+                (2.45, 0.00, 0.28),
+            ],
+
+            # 左侧连续障碍物，适合观察侧边雷达点。
+            'left_wall': [
+                (1.10, 0.65, 0.22),
+                (1.55, 0.65, 0.22),
+                (2.00, 0.65, 0.22),
+                (2.45, 0.65, 0.22),
+            ],
+
+            # 没有障碍物，用来确认小车和雷达本身能正常工作。
+            'open': [],
+        }
+
+        if layout_name not in layouts:
+            self.get_logger().warn(
+                f'Unknown obstacle_layout "{layout_name}", using "slalom" instead.'
+            )
+            self.obstacle_layout = 'slalom'
+
+        return layouts[self.obstacle_layout]
 
     def odom_callback(self, odom):
         """保存小车在 odom 世界坐标系里的最新位置和朝向。"""
