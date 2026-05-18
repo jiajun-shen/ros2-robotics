@@ -29,6 +29,7 @@ setup(
     entry_points={
         'console_scripts': [
             'fake_lidar_node = mini_amr_sensors.fake_lidar_node:main',
+            'lidar_safety_filter_node = mini_amr_sensors.lidar_safety_filter_node:main',
         ],
     },
 )

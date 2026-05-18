@@ -8,6 +8,7 @@
   <license>MIT</license>
 
   <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <exec_depend>mini_amr_description</exec_depend>
   <exec_depend>mini_amr_motion</exec_depend>

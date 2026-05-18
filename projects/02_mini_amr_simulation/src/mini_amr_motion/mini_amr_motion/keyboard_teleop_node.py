@@ -22,19 +22,23 @@ Controls:
 
 
 class KeyboardTeleopNode(Node):
-    """读取键盘按键，并发布 /cmd_vel 速度命令。"""
+    """读取键盘按键，并发布速度命令。"""
 
     def __init__(self):
         super().__init__('keyboard_teleop_node')
 
         self.declare_parameter('linear_speed_mps', 0.3)
         self.declare_parameter('angular_speed_radps', 0.9)
+        self.declare_parameter('cmd_vel_topic', 'cmd_vel')
 
         self.linear_speed = float(self.get_parameter('linear_speed_mps').value)
         self.angular_speed = float(self.get_parameter('angular_speed_radps').value)
+        self.cmd_vel_topic = self.get_parameter('cmd_vel_topic').value
 
-        self.publisher = self.create_publisher(Twist, 'cmd_vel', 10)
-        self.get_logger().info('Keyboard teleop started. Use w/s/a/d/x/q.')
+        self.publisher = self.create_publisher(Twist, self.cmd_vel_topic, 10)
+        self.get_logger().info(
+            f'Keyboard teleop started on /{self.cmd_vel_topic}. Use w/s/a/d/x/q.'
+        )
 
     def publish_command(self, linear_x, angular_z):
         message = Twist()

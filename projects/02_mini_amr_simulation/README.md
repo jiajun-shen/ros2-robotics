@@ -214,6 +214,55 @@ Code:
 
 - [mini_amr_sensors](src/mini_amr_sensors)
 
+## Lesson 05: Lidar Safety Filter
+
+This step adds a simple safety layer between teleoperation and robot motion.
+
+Data flow:
+
+```text
+keyboard_teleop_node -- /cmd_vel_raw --> lidar_safety_filter_node -- /cmd_vel --> cmd_vel_motion_node
+                                      ^
+                                      |
+                                    /scan
+```
+
+Run model, motion, fake lidar, safety filter, and RViz:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch mini_amr_sensors safety_display.launch.py
+```
+
+Run keyboard control in another terminal:
+
+```bash
+ros2 run mini_amr_motion keyboard_teleop_node --ros-args -p cmd_vel_topic:=cmd_vel_raw
+```
+
+Inspect raw and filtered commands:
+
+```bash
+ros2 topic echo /cmd_vel_raw
+ros2 topic echo /cmd_vel
+```
+
+Verify:
+
+```bash
+projects/02_mini_amr_simulation/scripts/verify_safety_filter.sh
+```
+
+Lesson:
+
+- [05_lidar_safety_filter.md](lessons/05_lidar_safety_filter.md)
+
+Code:
+
+- [lidar_safety_filter_node.py](src/mini_amr_sensors/mini_amr_sensors/lidar_safety_filter_node.py)
+
 ## Resume Bullet
 
 ```text
