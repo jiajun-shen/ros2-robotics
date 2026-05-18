@@ -17,4 +17,5 @@ ros2_job_ready_basics -> ../projects/01_ros2_core_basics/src/ros2_job_ready_basi
 mini_amr_description -> ../projects/02_mini_amr_simulation/src/mini_amr_description
 mini_amr_motion -> ../projects/02_mini_amr_simulation/src/mini_amr_motion
 mini_amr_sensors -> ../projects/02_mini_amr_simulation/src/mini_amr_sensors
+warehouse_navigation -> ../projects/03_warehouse_navigation/src/warehouse_navigation
 ```

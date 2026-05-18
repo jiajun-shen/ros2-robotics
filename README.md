@@ -166,6 +166,35 @@ projects/02_mini_amr_simulation/scripts/verify_description.sh
 projects/02_mini_amr_simulation/scripts/verify_motion.sh
 ```
 
+## Current Project 03
+
+The first package for warehouse navigation is:
+
+```bash
+projects/03_warehouse_navigation/src/warehouse_navigation
+```
+
+Run the simple goal navigation demo:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch warehouse_navigation warehouse_nav_demo.launch.py
+```
+
+Change the navigation goal:
+
+```bash
+ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=2.8 goal_y_m:=0.4
+```
+
+Terminal-only verification:
+
+```bash
+projects/03_warehouse_navigation/scripts/verify_warehouse_navigation_start.sh
+```
+
 ## Learning Goal
 
 Build practical ROS 2 projects that can be discussed in robotics software engineering interviews.

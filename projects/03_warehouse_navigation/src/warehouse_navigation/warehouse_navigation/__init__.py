@@ -1,0 +1,1 @@
+"""Warehouse navigation teaching package."""
