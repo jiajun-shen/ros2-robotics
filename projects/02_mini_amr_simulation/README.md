@@ -9,6 +9,7 @@ Current package:
 ```text
 src/mini_amr_description
 src/mini_amr_motion
+src/mini_amr_sensors
 ```
 
 ## Goal
@@ -47,6 +48,7 @@ Build a simulated differential-drive autonomous mobile robot, similar to a small
 └── src/
     └── mini_amr_description/
     └── mini_amr_motion/
+    └── mini_amr_sensors/
 ```
 
 ## Lesson 01: Robot Model In RViz
@@ -172,6 +174,45 @@ Verify:
 ```bash
 projects/02_mini_amr_simulation/scripts/verify_cmd_vel_control.sh
 ```
+
+## Lesson 04: Fake Lidar And LaserScan
+
+This step adds a fake 2D lidar sensor topic.
+
+Data flow:
+
+```text
+fake_lidar_node -- /scan --> RViz LaserScan display
+```
+
+Run model, motion, fake lidar, and RViz:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch mini_amr_sensors sensor_display.launch.py
+```
+
+Inspect scan data:
+
+```bash
+ros2 topic echo /scan --once
+```
+
+Verify:
+
+```bash
+projects/02_mini_amr_simulation/scripts/verify_fake_lidar.sh
+```
+
+Lesson:
+
+- [04_fake_lidar_scan.md](lessons/04_fake_lidar_scan.md)
+
+Code:
+
+- [mini_amr_sensors](src/mini_amr_sensors)
 
 ## Resume Bullet
 

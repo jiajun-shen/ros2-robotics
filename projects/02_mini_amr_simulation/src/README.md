@@ -6,6 +6,7 @@
 
 - `mini_amr_description`：URDF 小车模型、robot_state_publisher launch、RViz 配置。
 - `mini_amr_motion`：发布 `/odom` 和 `odom -> base_footprint` TF，让小车在 RViz 里运动。
+- `mini_amr_sensors`：发布 fake `/scan` 激光雷达数据，用 RViz 显示传感器点云效果。
 
 计划中的后续包可能包括：
 
