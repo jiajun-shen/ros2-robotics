@@ -104,10 +104,20 @@ ros2 topic echo /cmd_vel
   linear.x: 0.3
 
 /cmd_vel:
-  linear.x: 0.0
+  linear.x: 0.3   # 离障碍物远的时候，会先放行
 ```
 
-因为 fake lidar 的前方障碍距离约是 1.1 m，而 safety filter 默认阈值是 1.3 m。
+等小车靠近 RViz 里的红色障碍物以后，再按住 `w`：
+
+```text
+/cmd_vel_raw:
+  linear.x: 0.3
+
+/cmd_vel:
+  linear.x: 0.0   # 太近了，前进被拦截
+```
+
+这时不是键盘失效，而是 safety filter 正在保护小车。
 
 按 `a` 或 `d`：
 
@@ -120,6 +130,8 @@ ros2 topic echo /cmd_vel
 ```
 
 转向命令会被放行。
+
+所以你可以先转向，让雷达正前方避开障碍物，再继续按 `w` 绕过去。
 
 ## 这一节你要真正理解
 

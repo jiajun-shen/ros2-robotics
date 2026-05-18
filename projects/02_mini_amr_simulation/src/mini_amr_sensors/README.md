@@ -1,17 +1,19 @@
 # mini_amr_sensors
 
-这个包给 Mini AMR 加一个简化的激光雷达节点。
+这个包给 Mini AMR 加简化的激光雷达和安全过滤节点。
 
-它发布：
+它可以发布：
 
 ```text
 /scan
+/obstacles
 ```
 
-消息类型：
+常见消息类型：
 
 ```text
 sensor_msgs/msg/LaserScan
+visualization_msgs/msg/MarkerArray
 ```
 
 ## 只运行 fake lidar
@@ -45,12 +47,16 @@ ros2 run mini_amr_motion keyboard_teleop_node --ros-args -p cmd_vel_topic:=cmd_v
 
 安全过滤器会读取 `/scan`，把 `/cmd_vel_raw` 过滤成 `/cmd_vel`。
 
+`safety_display.launch.py` 使用 `world_lidar_node`，所以 RViz 中会看到红色圆柱障碍物。
+小车离障碍物远时可以前进；靠近障碍物后，继续按 `w` 会被安全过滤器拦住。
+
 ## 检查
 
 ```bash
 ros2 topic echo /scan --once
 ros2 topic echo /cmd_vel_raw
 ros2 topic echo /cmd_vel
+ros2 topic echo /obstacles --once
 ros2 topic info /scan
 ros2 node list
 ```

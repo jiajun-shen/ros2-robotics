@@ -227,7 +227,7 @@ keyboard_teleop_node -- /cmd_vel_raw --> lidar_safety_filter_node -- /cmd_vel --
                                     /scan
 ```
 
-Run model, motion, fake lidar, safety filter, and RViz:
+Run model, motion, world-obstacle lidar, safety filter, and RViz:
 
 ```bash
 cd ~/ros2_ws
@@ -258,6 +258,41 @@ projects/02_mini_amr_simulation/scripts/verify_safety_filter.sh
 Lesson:
 
 - [05_lidar_safety_filter.md](lessons/05_lidar_safety_filter.md)
+- [06_world_obstacles_and_realistic_safety.md](lessons/06_world_obstacles_and_realistic_safety.md)
+
+## Lesson 06: World Obstacles And Realistic Safety
+
+This step upgrades the safety demo from a fixed fake front obstacle to odometry-aware lidar ray casting.
+
+New behavior:
+
+```text
+world_lidar_node subscribes /odom
+world_lidar_node publishes /scan and /obstacles
+RViz shows red cylinder obstacles
+lidar_safety_filter_node blocks forward motion only when the obstacle is actually close ahead
+```
+
+Run:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch mini_amr_sensors safety_display.launch.py
+```
+
+Keyboard:
+
+```bash
+ros2 run mini_amr_motion keyboard_teleop_node --ros-args -p cmd_vel_topic:=cmd_vel_raw
+```
+
+Verify:
+
+```bash
+projects/02_mini_amr_simulation/scripts/verify_safety_filter.sh
+```
 
 Code:
 

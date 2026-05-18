@@ -10,11 +10,13 @@
 - [03_cmd_vel_keyboard_control.md](03_cmd_vel_keyboard_control.md)
 - [04_fake_lidar_scan.md](04_fake_lidar_scan.md)
 - [05_lidar_safety_filter.md](05_lidar_safety_filter.md)
+- [06_world_obstacles_and_realistic_safety.md](06_world_obstacles_and_realistic_safety.md)
 
 计划学习顺序：
 
 1. URDF/xacro 机器人模型
 2. RViz 可视化
-3. Gazebo 仿真
-4. 差速轮控制
-5. lidar/camera 传感器 topic
+3. 差速轮控制
+4. lidar 传感器 topic
+5. 基于 LaserScan 的安全过滤
+6. Gazebo 或 Isaac Sim 仿真
