@@ -120,16 +120,57 @@ ros2 launch warehouse_navigation warehouse_nav_demo.launch.py
 
 ## 改目标点
 
-例如，把目标点改到更远一点：
+第一条 launch 命令只开一次。
+
+如果你想改目标点，不要再运行第二次 launch。
+
+正确做法是在第二个终端发送一个新的 `/goal_pose`：
 
 ```bash
-ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=2.8 goal_y_m:=0.4
+cd ~/ros2_ws
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=2.8 -p goal_y_m:=0.4
 ```
 
 换到另一侧：
 
 ```bash
-ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=1.8 goal_y_m:=-0.8
+ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=1.8 -p goal_y_m:=-0.8
+```
+
+这时你会看到 RViz 里的绿色目标点移动到新坐标，小车也会朝新目标点开。
+
+## 为什么不能开第二个 launch
+
+你如果这样做：
+
+```bash
+ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=2.8 goal_y_m:=0.4
+```
+
+但第一个 launch 还没关掉，就会出现两套系统同时运行：
+
+```text
+两个 simple_goal_follower_node 同时发布 /cmd_vel_raw
+两个 cmd_vel_motion_node 同时发布 /odom
+两个 warehouse_scene_node 同时发布 /warehouse_scene
+```
+
+所以 RViz 里的绿色目标点会在两个坐标之间来回闪，小车也会被两套控制命令干扰。
+
+正确规则：
+
+```text
+启动机器人系统：用 launch，只开一次
+改变导航目标：用 send_goal_node
+```
+
+如果你已经看到绿色目标点来回闪，说明旧 launch 还没关干净。
+先在所有正在运行 launch 的终端按 `Ctrl+C`，再重新启动一次：
+
+```bash
+ros2 launch warehouse_navigation warehouse_nav_demo.launch.py
 ```
 
 ## 加回 Project 02 的障碍物
@@ -164,7 +205,8 @@ ros2 launch warehouse_navigation warehouse_nav_demo.launch.py obstacle_layout:=s
 
 ```text
 /odom 是当前位置反馈
-goal_x_m / goal_y_m 是目标点
+goal_x_m / goal_y_m 是启动时默认目标点
+/goal_pose 是运行中更新目标点
 simple_goal_follower_node 根据误差算速度
 /cmd_vel_raw 是导航节点发出的原始速度
 /cmd_vel 是 safety filter 放行后的速度

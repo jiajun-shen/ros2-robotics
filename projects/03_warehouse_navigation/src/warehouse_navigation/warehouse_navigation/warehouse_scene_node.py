@@ -1,9 +1,20 @@
 import math
 
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, PoseStamped
 import rclpy
 from rclpy.node import Node
 from visualization_msgs.msg import Marker, MarkerArray
+
+
+def yaw_from_quaternion(orientation):
+    """把 PoseStamped 里的四元数方向转换成 yaw 角。"""
+    siny_cosp = 2.0 * (
+        orientation.w * orientation.z + orientation.x * orientation.y
+    )
+    cosy_cosp = 1.0 - 2.0 * (
+        orientation.y * orientation.y + orientation.z * orientation.z
+    )
+    return math.atan2(siny_cosp, cosy_cosp)
 
 
 class WarehouseSceneNode(Node):
@@ -13,17 +24,25 @@ class WarehouseSceneNode(Node):
         super().__init__('warehouse_scene_node')
 
         self.declare_parameter('marker_topic', 'warehouse_scene')
+        self.declare_parameter('goal_topic', 'goal_pose')
         self.declare_parameter('goal_x_m', 2.0)
         self.declare_parameter('goal_y_m', 0.6)
         self.declare_parameter('goal_yaw_rad', 0.0)
         self.declare_parameter('publish_rate_hz', 2.0)
 
         self.marker_topic = self.get_parameter('marker_topic').value
+        self.goal_topic = self.get_parameter('goal_topic').value
         self.goal_x = float(self.get_parameter('goal_x_m').value)
         self.goal_y = float(self.get_parameter('goal_y_m').value)
         self.goal_yaw = float(self.get_parameter('goal_yaw_rad').value)
         self.publish_rate = float(self.get_parameter('publish_rate_hz').value)
 
+        self.goal_subscriber = self.create_subscription(
+            PoseStamped,
+            self.goal_topic,
+            self.goal_callback,
+            10,
+        )
         self.marker_publisher = self.create_publisher(
             MarkerArray,
             self.marker_topic,
@@ -33,6 +52,15 @@ class WarehouseSceneNode(Node):
 
         self.get_logger().info(
             f'Warehouse scene publishing /{self.marker_topic} markers.'
+        )
+
+    def goal_callback(self, goal):
+        """收到新目标点后，更新 RViz 里的绿色目标点和参考线。"""
+        self.goal_x = goal.pose.position.x
+        self.goal_y = goal.pose.position.y
+        self.goal_yaw = yaw_from_quaternion(goal.pose.orientation)
+        self.get_logger().info(
+            f'Warehouse scene goal updated: ({self.goal_x:.2f}, {self.goal_y:.2f})'
         )
 
     def publish_scene(self):

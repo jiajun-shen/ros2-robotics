@@ -183,10 +183,16 @@ source install/setup.bash
 ros2 launch warehouse_navigation warehouse_nav_demo.launch.py
 ```
 
-Change the navigation goal:
+Change the startup navigation goal:
 
 ```bash
 ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=2.8 goal_y_m:=0.4
+```
+
+Send a new goal after the launch is already running:
+
+```bash
+ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=2.8 -p goal_y_m:=0.4
 ```
 
 Terminal-only verification:

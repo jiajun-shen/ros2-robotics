@@ -55,11 +55,19 @@ source install/setup.bash
 ros2 launch warehouse_navigation warehouse_nav_demo.launch.py
 ```
 
-Change the goal:
+Change the startup goal:
 
 ```bash
 ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=2.8 goal_y_m:=0.4
 ```
+
+Send a new goal while the launch is already running:
+
+```bash
+ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=2.8 -p goal_y_m:=0.4
+```
+
+Do not start a second `warehouse_nav_demo.launch.py` while the first one is still running. That creates duplicate publishers on `/odom`, `/cmd_vel_raw`, and `/warehouse_scene`.
 
 Verify:
 
