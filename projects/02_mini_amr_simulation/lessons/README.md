@@ -4,6 +4,7 @@
 
 当前教案：
 
+- [00_how_mini_amr_description_is_built.md](00_how_mini_amr_description_is_built.md)
 - [01_urdf_robot_model_rviz.md](01_urdf_robot_model_rviz.md)
 - [02_odometry_and_tf_motion.md](02_odometry_and_tf_motion.md)
 

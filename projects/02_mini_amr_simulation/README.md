@@ -81,6 +81,7 @@ projects/02_mini_amr_simulation/scripts/verify_description.sh
 
 Lesson:
 
+- [00_how_mini_amr_description_is_built.md](lessons/00_how_mini_amr_description_is_built.md)
 - [01_urdf_robot_model_rviz.md](lessons/01_urdf_robot_model_rviz.md)
 
 Code:
