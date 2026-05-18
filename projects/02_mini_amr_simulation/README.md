@@ -127,6 +127,52 @@ Code:
 
 - [mini_amr_motion](src/mini_amr_motion)
 
+## Lesson 03: cmd_vel And Keyboard Control
+
+This step upgrades the motion demo from fixed circular motion to command-velocity control.
+
+Data flow:
+
+```text
+keyboard_teleop_node  -- /cmd_vel -->  cmd_vel_motion_node  -- /odom + TF --> RViz
+```
+
+Run model, motion node, and RViz:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch mini_amr_motion cmd_vel_display.launch.py
+```
+
+Run keyboard control in another terminal:
+
+```bash
+ros2 run mini_amr_motion keyboard_teleop_node
+```
+
+Keys:
+
+```text
+w forward
+s backward
+a turn left
+d turn right
+x stop
+q quit
+```
+
+Lesson:
+
+- [03_cmd_vel_keyboard_control.md](lessons/03_cmd_vel_keyboard_control.md)
+
+Verify:
+
+```bash
+projects/02_mini_amr_simulation/scripts/verify_cmd_vel_control.sh
+```
+
 ## Resume Bullet
 
 ```text

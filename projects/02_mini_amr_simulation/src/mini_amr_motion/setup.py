@@ -29,6 +29,8 @@ setup(
     entry_points={
         'console_scripts': [
             'circle_motion_node = mini_amr_motion.circle_motion_node:main',
+            'cmd_vel_motion_node = mini_amr_motion.cmd_vel_motion_node:main',
+            'keyboard_teleop_node = mini_amr_motion.keyboard_teleop_node:main',
         ],
     },
 )

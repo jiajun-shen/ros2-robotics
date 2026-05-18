@@ -9,7 +9,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    """启动小车模型、运动节点和 RViz。"""
+    """启动小车模型、cmd_vel 运动节点和 RViz。"""
     description_share = get_package_share_directory('mini_amr_description')
     urdf_path = os.path.join(description_share, 'urdf', 'mini_amr.urdf')
     rviz_config_path = os.path.join(description_share, 'rviz', 'mini_amr_odom.rviz')
@@ -36,14 +36,9 @@ def generate_launch_description():
         ),
         Node(
             package='mini_amr_motion',
-            executable='circle_motion_node',
-            name='circle_motion_node',
+            executable='cmd_vel_motion_node',
+            name='cmd_vel_motion_node',
             output='screen',
-            parameters=[{
-                'linear_speed_mps': 0.25,
-                'angular_speed_radps': 0.45,
-                'update_rate_hz': 30.0,
-            }],
         ),
         Node(
             package='rviz2',

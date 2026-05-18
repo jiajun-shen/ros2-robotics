@@ -28,10 +28,36 @@ ros2 launch mini_amr_motion moving_display.launch.py
 ros2 launch mini_amr_motion moving_display.launch.py use_rviz:=false
 ```
 
+## 用 /cmd_vel 控制小车
+
+终端 1：
+
+```bash
+ros2 launch mini_amr_motion cmd_vel_display.launch.py
+```
+
+终端 2：
+
+```bash
+ros2 run mini_amr_motion keyboard_teleop_node
+```
+
+按键：
+
+```text
+w 前进
+s 后退
+a 左转
+d 右转
+x 停止
+q 退出
+```
+
 ## 检查
 
 ```bash
 ros2 topic echo /odom --once
+ros2 topic echo /cmd_vel
 ros2 topic list
 ros2 node list
 ```
