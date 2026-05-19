@@ -10,6 +10,12 @@ Panels:
 Visualization Manager:
   Class: ""
   Displays:
+    - Class: rviz_default_plugins/Map
+      Enabled: true
+      Name: Warehouse Map
+      Topic:
+        Value: /map
+      Value: true
     - Class: rviz_default_plugins/Grid
       Enabled: true
       Name: Grid

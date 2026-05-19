@@ -136,6 +136,32 @@ Lesson:
 
 - [02_waypoint_patrol.md](lessons/02_waypoint_patrol.md)
 
+## Lesson 03: OccupancyGrid Warehouse Map
+
+This step adds a ROS 2 occupancy grid map publisher.
+
+Data flow:
+
+```text
+warehouse_map_node -- /map --> RViz Map display
+```
+
+Inspect:
+
+```bash
+ros2 topic echo /map --once
+```
+
+Verify:
+
+```bash
+projects/03_warehouse_navigation/scripts/verify_waypoint_patrol.sh
+```
+
+Lesson:
+
+- [03_occupancy_grid_map.md](lessons/03_occupancy_grid_map.md)
+
 ## Resume Bullet
 
 ```text

@@ -112,6 +112,12 @@ def generate_launch_description():
         ),
         Node(
             package='warehouse_navigation',
+            executable='warehouse_map_node',
+            name='warehouse_map_node',
+            output='screen',
+        ),
+        Node(
+            package='warehouse_navigation',
             executable='warehouse_scene_node',
             name='warehouse_scene_node',
             output='screen',

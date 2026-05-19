@@ -7,6 +7,7 @@
 - `warehouse_navigation`：最小仓库导航 demo。
   - `simple_goal_follower_node`：单目标点导航控制器。
   - `waypoint_patrol_node`：顺序航点任务层。
+  - `warehouse_map_node`：OccupancyGrid 仓库地图发布器。
   - `warehouse_scene_node`：RViz 仓库场景 marker。
 
 计划后续包：
