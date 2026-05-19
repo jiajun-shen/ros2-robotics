@@ -143,21 +143,37 @@ ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=1.8 -p goal
 
 ## 用 RViz 鼠标点击发送目标点
 
-现在还新增了一个更直观的方式：
+现在有两种 RViz 鼠标方式。
+
+推荐方式是 `2D Goal Pose`：
 
 ```text
-RViz Publish Point 工具 -> /clicked_point -> clicked_point_goal_node -> /goal_pose
+RViz 2D Goal Pose 工具 -> /goal_pose -> simple_goal_follower_node
 ```
 
-运行第一条 launch 后，在 RViz 顶部工具栏选择 `Publish Point`。
+运行第一条 launch 后，在 RViz 顶部工具栏选择 `2D Goal Pose`。
 
-然后在地面网格上点一下。
+操作方式：
+
+```text
+在地面网格上按住鼠标左键
+拖出一个箭头方向
+松开鼠标
+```
 
 你应该看到：
 
 ```text
-绿色目标点移动到你点击的位置
-小车开始朝这个点运动
+绿色目标点移动到你选择的位置
+小车先转向，再朝目标点移动
+```
+
+这个方式更像以后 Nav2 里真正使用的 RViz 目标点交互。
+
+另一个辅助方式是 `Publish Point`：
+
+```text
+RViz Publish Point 工具 -> /clicked_point -> clicked_point_goal_node -> /goal_pose
 ```
 
 这里发生的事是：
@@ -169,6 +185,9 @@ clicked_point_goal_node 把点转换成 geometry_msgs/msg/PoseStamped
 simple_goal_follower_node 收到 /goal_pose
 小车朝新目标点移动
 ```
+
+`Publish Point` 更像点一个 3D 点，有时点击范围和手感会比较奇怪。
+所以导航练习优先用 `2D Goal Pose`。
 
 代码位置：
 
@@ -201,7 +220,7 @@ ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=2.8 goal
 ```text
 启动机器人系统：用 launch，只开一次
 改变导航目标：用 send_goal_node
-鼠标点击目标：用 RViz 的 Publish Point 工具
+鼠标点击目标：优先用 RViz 的 2D Goal Pose 工具
 ```
 
 如果你已经看到绿色目标点来回闪，说明旧 launch 还没关干净。
@@ -246,6 +265,7 @@ ros2 launch warehouse_navigation warehouse_nav_demo.launch.py obstacle_layout:=s
 goal_x_m / goal_y_m 是启动时默认目标点
 /goal_pose 是运行中更新目标点
 /clicked_point 是 RViz 鼠标点击出来的点
+2D Goal Pose 会直接发布 /goal_pose
 simple_goal_follower_node 根据误差算速度
 /cmd_vel_raw 是导航节点发出的原始速度
 /cmd_vel 是 safety filter 放行后的速度
@@ -256,3 +276,27 @@ simple_goal_follower_node 根据误差算速度
 ```text
 Implemented a minimal ROS 2 goal-following controller that uses odometry feedback to drive a mobile robot toward a warehouse navigation goal while keeping velocity commands behind a safety filter.
 ```
+## 现在这个导航还不能做什么
+
+现在的小车会朝目标点直线行驶。
+
+如果你点的是货架/障碍物后面的点，它不会自己绕路，因为我们还没有真正的路径规划器。
+
+它能做到：
+
+```text
+点击开阔地面上的目标点
+小车先转向，再开过去
+运行中重新点一个新目标点
+小车重新调整方向
+```
+
+它暂时不能做到：
+
+```text
+自动规划绕开货架的曲线路径
+自动从障碍物中找通道
+自动生成全局路径和局部避障轨迹
+```
+
+这些就是后面 Nav2 的 planner、controller、costmap 要解决的问题。

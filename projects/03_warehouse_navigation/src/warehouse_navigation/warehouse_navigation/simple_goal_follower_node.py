@@ -46,7 +46,7 @@ class SimpleGoalFollowerNode(Node):
         # 控制器参数。先用保守速度，方便初学者观察 RViz。
         self.declare_parameter('goal_tolerance_m', 0.10)
         self.declare_parameter('yaw_tolerance_rad', 0.18)
-        self.declare_parameter('heading_tolerance_rad', 0.25)
+        self.declare_parameter('heading_tolerance_rad', 0.18)
         self.declare_parameter('max_linear_speed_mps', 0.35)
         self.declare_parameter('max_angular_speed_radps', 0.9)
         self.declare_parameter('linear_gain', 0.7)
@@ -146,7 +146,7 @@ class SimpleGoalFollowerNode(Node):
             self.max_angular,
         )
 
-        # 如果车头偏得比较多，先原地转正；这样小车不会斜着乱冲。
+        # 如果车头偏得比较多，先原地转正；这样会更像“先转向，再前进”。
         if abs(heading_error) > self.heading_tolerance:
             command.linear.x = 0.0
             return

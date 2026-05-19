@@ -72,10 +72,10 @@ Do not start a second `warehouse_nav_demo.launch.py` while the first one is stil
 Click a goal in RViz:
 
 ```text
-Select Publish Point in RViz, then click on the odom grid.
+Select 2D Goal Pose in RViz, then click-drag on the odom grid.
 ```
 
-The click publishes `/clicked_point`; `clicked_point_goal_node` converts it to `/goal_pose`.
+`2D Goal Pose` publishes `/goal_pose` directly. The older `Publish Point` tool is still available as a teaching helper; it publishes `/clicked_point`, and `clicked_point_goal_node` converts it to `/goal_pose`.
 
 Verify:
 

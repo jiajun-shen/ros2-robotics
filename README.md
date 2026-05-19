@@ -195,7 +195,7 @@ Send a new goal after the launch is already running:
 ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=2.8 -p goal_y_m:=0.4
 ```
 
-You can also select `Publish Point` in RViz and click on the grid to send a new goal interactively.
+You can also select `2D Goal Pose` in RViz and click-drag on the grid to send a new goal interactively.
 
 Terminal-only verification:
 
