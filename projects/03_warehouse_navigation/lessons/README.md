@@ -5,6 +5,7 @@
 当前教案：
 
 - [01_simple_goal_navigation.md](01_simple_goal_navigation.md)
+- [02_waypoint_patrol.md](02_waypoint_patrol.md)
 
 计划学习顺序：
 

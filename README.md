@@ -197,6 +197,12 @@ ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=2.8 -p goal
 
 You can also select `2D Goal Pose` in RViz and click-drag on the grid to send a new goal interactively.
 
+Run waypoint patrol:
+
+```bash
+ros2 launch warehouse_navigation warehouse_waypoint_demo.launch.py
+```
+
 Terminal-only verification:
 
 ```bash

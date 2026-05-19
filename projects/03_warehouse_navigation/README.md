@@ -87,6 +87,43 @@ Lesson:
 
 - [01_simple_goal_navigation.md](lessons/01_simple_goal_navigation.md)
 
+## Lesson 02: Waypoint Patrol
+
+This step adds a task layer that sends multiple goals in sequence.
+
+Data flow:
+
+```text
+waypoint_patrol_node -- /goal_pose --> simple_goal_follower_node -- /cmd_vel_raw --> safety filter
+        |
+        +-- /waypoint_route --> RViz
+```
+
+Run:
+
+```bash
+cd ~/ros2_ws
+colcon build
+source install/setup.bash
+ros2 launch warehouse_navigation warehouse_waypoint_demo.launch.py
+```
+
+Run a short route:
+
+```bash
+ros2 launch warehouse_navigation warehouse_waypoint_demo.launch.py route_name:=short_demo
+```
+
+Verify:
+
+```bash
+projects/03_warehouse_navigation/scripts/verify_waypoint_patrol.sh
+```
+
+Lesson:
+
+- [02_waypoint_patrol.md](lessons/02_waypoint_patrol.md)
+
 ## Resume Bullet
 
 ```text
