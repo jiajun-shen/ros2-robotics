@@ -29,6 +29,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'clicked_point_goal_node = warehouse_navigation.clicked_point_goal_node:main',
             'send_goal_node = warehouse_navigation.send_goal_node:main',
             'simple_goal_follower_node = warehouse_navigation.simple_goal_follower_node:main',
             'warehouse_scene_node = warehouse_navigation.warehouse_scene_node:main',

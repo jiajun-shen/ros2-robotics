@@ -16,6 +16,7 @@ set -u
 
 stop_existing_demo_nodes() {
   pkill -f send_goal_node 2>/dev/null || true
+  pkill -f clicked_point_goal_node 2>/dev/null || true
   pkill -f simple_goal_follower_node 2>/dev/null || true
   pkill -f warehouse_scene_node 2>/dev/null || true
   pkill -f lidar_safety_filter_node 2>/dev/null || true
@@ -61,6 +62,19 @@ ros2 run warehouse_navigation send_goal_node --ros-args \
 
 sleep 1
 
+echo "==> Sending another goal through RViz-style /clicked_point"
+timeout 5 ros2 topic echo /goal_pose --once \
+  > "${log_dir}/goal_pose_from_click.log" 2>&1 &
+goal_echo_pid="$!"
+sleep 1
+
+ros2 topic pub --once /clicked_point geometry_msgs/msg/PointStamped \
+  "{header: {frame_id: 'odom'}, point: {x: 1.8, y: -0.4, z: 0.0}}" \
+  > "${log_dir}/clicked_point_pub.log" 2>&1
+
+wait "${goal_echo_pid}"
+sleep 1
+
 echo "==> Reading navigation command"
 timeout 5 ros2 topic echo /cmd_vel_raw --once \
   > "${log_dir}/cmd_vel_raw_once.log" 2>&1
@@ -75,15 +89,18 @@ timeout 5 ros2 topic echo /odom --once \
 
 grep -q 'simple_goal_follower_node' "${log_dir}/warehouse_nav_demo.log"
 grep -q 'warehouse_scene_node' "${log_dir}/warehouse_nav_demo.log"
+grep -q 'clicked_point_goal_node' "${log_dir}/warehouse_nav_demo.log"
 grep -q 'cmd_vel_motion_node' "${log_dir}/warehouse_nav_demo.log"
 grep -q 'Goal sent' "${log_dir}/send_goal_node.log"
+grep -q 'x: 1.8' "${log_dir}/goal_pose_from_click.log"
+grep -q 'y: -0.4' "${log_dir}/goal_pose_from_click.log"
 grep -q 'linear:' "${log_dir}/cmd_vel_raw_once.log"
 grep -Eq 'x: 0\.[0-9]|z: 0\.[0-9]|z: -0\.[0-9]' \
   "${log_dir}/cmd_vel_raw_once.log"
 grep -q 'warehouse_goal' "${log_dir}/warehouse_scene_once.log"
 grep -q 'warehouse_shelves' "${log_dir}/warehouse_scene_once.log"
-grep -q 'x: 2.4' "${log_dir}/warehouse_scene_once.log"
-grep -q 'y: 0.2' "${log_dir}/warehouse_scene_once.log"
+grep -q 'x: 1.8' "${log_dir}/warehouse_scene_once.log"
+grep -q 'y: -0.4' "${log_dir}/warehouse_scene_once.log"
 grep -q 'pose:' "${log_dir}/odom_once.log"
 
 echo "Warehouse navigation start check passed."

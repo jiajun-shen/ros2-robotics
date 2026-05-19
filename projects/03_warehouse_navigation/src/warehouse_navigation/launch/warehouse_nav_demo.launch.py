@@ -115,6 +115,12 @@ def generate_launch_description():
         ),
         Node(
             package='warehouse_navigation',
+            executable='clicked_point_goal_node',
+            name='clicked_point_goal_node',
+            output='screen',
+        ),
+        Node(
+            package='warehouse_navigation',
             executable='simple_goal_follower_node',
             name='simple_goal_follower_node',
             output='screen',

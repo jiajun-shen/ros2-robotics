@@ -141,6 +141,43 @@ ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=1.8 -p goal
 
 这时你会看到 RViz 里的绿色目标点移动到新坐标，小车也会朝新目标点开。
 
+## 用 RViz 鼠标点击发送目标点
+
+现在还新增了一个更直观的方式：
+
+```text
+RViz Publish Point 工具 -> /clicked_point -> clicked_point_goal_node -> /goal_pose
+```
+
+运行第一条 launch 后，在 RViz 顶部工具栏选择 `Publish Point`。
+
+然后在地面网格上点一下。
+
+你应该看到：
+
+```text
+绿色目标点移动到你点击的位置
+小车开始朝这个点运动
+```
+
+这里发生的事是：
+
+```text
+RViz 点击平面，发布 geometry_msgs/msg/PointStamped
+clicked_point_goal_node 收到 /clicked_point
+clicked_point_goal_node 把点转换成 geometry_msgs/msg/PoseStamped
+simple_goal_follower_node 收到 /goal_pose
+小车朝新目标点移动
+```
+
+代码位置：
+
+```text
+src/warehouse_navigation/warehouse_navigation/clicked_point_goal_node.py
+```
+
+注意：这个入门版本只处理 `odom` 坐标系里的点击点，所以 RViz 的 `Fixed Frame` 要保持 `odom`。
+
 ## 为什么不能开第二个 launch
 
 你如果这样做：
@@ -164,6 +201,7 @@ ros2 launch warehouse_navigation warehouse_nav_demo.launch.py goal_x_m:=2.8 goal
 ```text
 启动机器人系统：用 launch，只开一次
 改变导航目标：用 send_goal_node
+鼠标点击目标：用 RViz 的 Publish Point 工具
 ```
 
 如果你已经看到绿色目标点来回闪，说明旧 launch 还没关干净。
@@ -207,6 +245,7 @@ ros2 launch warehouse_navigation warehouse_nav_demo.launch.py obstacle_layout:=s
 /odom 是当前位置反馈
 goal_x_m / goal_y_m 是启动时默认目标点
 /goal_pose 是运行中更新目标点
+/clicked_point 是 RViz 鼠标点击出来的点
 simple_goal_follower_node 根据误差算速度
 /cmd_vel_raw 是导航节点发出的原始速度
 /cmd_vel 是 safety filter 放行后的速度

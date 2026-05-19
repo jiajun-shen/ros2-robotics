@@ -69,6 +69,14 @@ ros2 run warehouse_navigation send_goal_node --ros-args -p goal_x_m:=2.8 -p goal
 
 Do not start a second `warehouse_nav_demo.launch.py` while the first one is still running. That creates duplicate publishers on `/odom`, `/cmd_vel_raw`, and `/warehouse_scene`.
 
+Click a goal in RViz:
+
+```text
+Select Publish Point in RViz, then click on the odom grid.
+```
+
+The click publishes `/clicked_point`; `clicked_point_goal_node` converts it to `/goal_pose`.
+
 Verify:
 
 ```bash
