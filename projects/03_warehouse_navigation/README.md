@@ -108,6 +108,18 @@ source install/setup.bash
 ros2 launch warehouse_navigation warehouse_waypoint_demo.launch.py
 ```
 
+If RViz appears in the Windows taskbar but the preview is blank, run the robot without RViz and open RViz with the safe-rendering script:
+
+```bash
+ros2 launch warehouse_navigation warehouse_waypoint_demo.launch.py use_rviz:=false route_name:=short_demo
+```
+
+In another terminal:
+
+```bash
+projects/03_warehouse_navigation/scripts/open_warehouse_rviz_safe.sh
+```
+
 Run a short route:
 
 ```bash

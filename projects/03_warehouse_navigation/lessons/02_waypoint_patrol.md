@@ -122,6 +122,26 @@ WP1 / WP2 / WP3 等航点标签
 ros2 launch warehouse_navigation warehouse_waypoint_demo.launch.py route_name:=short_demo
 ```
 
+## 如果 RViz 任务栏有进程但窗口是空白
+
+这是 WSL2 + RViz 偶尔会出现的图形渲染问题，不是 ROS 节点写错。
+
+更稳的启动方式是分开开：
+
+终端 1，只启动机器人系统：
+
+```bash
+ros2 launch warehouse_navigation warehouse_waypoint_demo.launch.py use_rviz:=false route_name:=short_demo
+```
+
+终端 2，用安全渲染模式打开 RViz：
+
+```bash
+projects/03_warehouse_navigation/scripts/open_warehouse_rviz_safe.sh
+```
+
+这个脚本会使用软件渲染，速度可能慢一点，但窗口更不容易空白。
+
 默认路线是：
 
 ```bash

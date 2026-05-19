@@ -30,6 +30,14 @@ def generate_launch_description():
     goal_x_m = LaunchConfiguration('goal_x_m')
     goal_y_m = LaunchConfiguration('goal_y_m')
     goal_yaw_rad = LaunchConfiguration('goal_yaw_rad')
+    rviz_safe_env = {
+        # WSLg sometimes creates an RViz window but leaves it blank with GPU GL.
+        # Software rendering is slower but much more reliable for this course.
+        'LIBGL_ALWAYS_SOFTWARE': '1',
+        'GALLIUM_DRIVER': 'llvmpipe',
+        'QT_QPA_PLATFORM': 'xcb',
+        'QT_X11_NO_MITSHM': '1',
+    }
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -137,6 +145,7 @@ def generate_launch_description():
             name='rviz2',
             output='screen',
             arguments=['-d', rviz_config_path],
+            additional_env=rviz_safe_env,
             condition=IfCondition(use_rviz),
         ),
     ])
