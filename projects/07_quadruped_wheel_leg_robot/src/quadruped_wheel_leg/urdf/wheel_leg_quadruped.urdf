@@ -28,7 +28,7 @@
     <color rgba="0.54 0.57 0.59 1.0"/>
   </material>
   <material name="joint_graphite">
-    <color rgba="0.24 0.26 0.28 1.0"/>
+    <color rgba="0.96 0.97 0.98 1.0"/>
   </material>
   <material name="wheel_rubber">
     <color rgba="0.10 0.12 0.13 1.0"/>
