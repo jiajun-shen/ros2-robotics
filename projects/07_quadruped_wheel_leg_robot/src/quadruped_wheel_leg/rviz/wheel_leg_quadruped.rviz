@@ -37,11 +37,11 @@ Visualization Manager:
         Value: /quadruped_status
       Value: true
     - Class: rviz_default_plugins/Odometry
-      Enabled: true
+      Enabled: false
       Name: Odometry
       Topic:
         Value: /odom
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 31; 34; 37

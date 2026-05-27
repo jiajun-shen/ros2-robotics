@@ -370,7 +370,7 @@ class WheelLegMotionNode(Node):
         start = Point()
         start.x = 0.0
         start.y = 0.0
-        start.z = 0.16
+        start.z = 0.14
 
         end = Point()
         translation = math.hypot(forward, lateral)
@@ -380,16 +380,16 @@ class WheelLegMotionNode(Node):
         else:
             end.x = 0.0
             end.y = 0.24 * (1.0 if angular >= 0.0 else -1.0)
-        end.z = 0.16
+        end.z = 0.14
 
         marker.points = [start, end]
-        marker.scale.x = 0.035
-        marker.scale.y = 0.075
-        marker.scale.z = 0.11
+        marker.scale.x = 0.018
+        marker.scale.y = 0.040
+        marker.scale.z = 0.060
         marker.color.r = 0.00
         marker.color.g = 0.85
         marker.color.b = 1.00
-        marker.color.a = 0.85
+        marker.color.a = 0.35
         return marker
 
     def make_status_text_marker(self, now, forward, lateral, angular, moving_strength):
