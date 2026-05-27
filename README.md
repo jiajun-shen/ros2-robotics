@@ -37,6 +37,9 @@
 6. [`projects/06_embodied_ai_task_executor`](projects/06_embodied_ai_task_executor)  
    具身智能任务执行：自然语言目标解析，调用导航、感知、操作模块完成任务。
 
+7. [`projects/07_quadruped_wheel_leg_robot`](projects/07_quadruped_wheel_leg_robot)
+   轮腿式四足机器狗 RViz 仿真：URDF 建模、trot 步态动画、`cmd_vel` 控制、里程计、TF 和运动轨迹可视化。
+
 ## Repository Structure
 
 ```text
@@ -50,7 +53,8 @@ ros2_ws/
 │   ├── 03_warehouse_navigation/
 │   ├── 04_perception_to_action/
 │   ├── 05_manipulation_pick_and_place/
-│   └── 06_embodied_ai_task_executor/
+│   ├── 06_embodied_ai_task_executor/
+│   └── 07_quadruped_wheel_leg_robot/
 └── src/                # colcon build 入口，链接到各项目的 ROS 包
 ```
 
@@ -207,6 +211,37 @@ Terminal-only verification:
 
 ```bash
 projects/03_warehouse_navigation/scripts/verify_warehouse_navigation_start.sh
+```
+
+## Current Project 07
+
+The wheel-legged quadruped package is:
+
+```bash
+projects/07_quadruped_wheel_leg_robot/src/quadruped_wheel_leg
+```
+
+Run the auto showcase:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/jazzy/setup.bash
+colcon build --symlink-install --packages-select quadruped_wheel_leg
+source install/setup.bash
+ros2 launch quadruped_wheel_leg wheel_leg_demo.launch.py
+```
+
+Run manual keyboard joystick:
+
+```bash
+ros2 launch quadruped_wheel_leg wheel_leg_demo.launch.py auto_demo:=false
+ros2 run quadruped_wheel_leg virtual_joystick_node
+```
+
+Verify Project 07:
+
+```bash
+projects/07_quadruped_wheel_leg_robot/scripts/verify_quadruped_demo.sh
 ```
 
 ## Learning Goal

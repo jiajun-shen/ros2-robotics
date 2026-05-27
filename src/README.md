@@ -18,4 +18,5 @@ mini_amr_description -> ../projects/02_mini_amr_simulation/src/mini_amr_descript
 mini_amr_motion -> ../projects/02_mini_amr_simulation/src/mini_amr_motion
 mini_amr_sensors -> ../projects/02_mini_amr_simulation/src/mini_amr_sensors
 warehouse_navigation -> ../projects/03_warehouse_navigation/src/warehouse_navigation
+quadruped_wheel_leg -> ../projects/07_quadruped_wheel_leg_robot/src/quadruped_wheel_leg
 ```

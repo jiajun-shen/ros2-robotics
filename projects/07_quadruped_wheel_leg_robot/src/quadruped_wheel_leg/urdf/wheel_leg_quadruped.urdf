@@ -1,0 +1,407 @@
+<?xml version="1.0"?>
+<robot name="wheel_leg_quadruped">
+  <material name="body_dark">
+    <color rgba="0.08 0.11 0.14 1.0"/>
+  </material>
+  <material name="body_panel">
+    <color rgba="0.18 0.28 0.36 1.0"/>
+  </material>
+  <material name="accent_cyan">
+    <color rgba="0.00 0.78 0.95 1.0"/>
+  </material>
+  <material name="accent_green">
+    <color rgba="0.20 0.90 0.48 1.0"/>
+  </material>
+  <material name="leg_metal">
+    <color rgba="0.62 0.67 0.72 1.0"/>
+  </material>
+  <material name="joint_black">
+    <color rgba="0.02 0.02 0.025 1.0"/>
+  </material>
+  <material name="wheel_rubber">
+    <color rgba="0.015 0.015 0.018 1.0"/>
+  </material>
+  <material name="wheel_hub">
+    <color rgba="0.88 0.90 0.92 1.0"/>
+  </material>
+
+  <link name="base_footprint"/>
+
+  <joint name="base_footprint_to_base_link" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.50" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.78 0.32 0.18"/>
+      </geometry>
+      <material name="body_dark"/>
+    </visual>
+    <visual>
+      <origin xyz="0.03 0 0.105" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.54 0.24 0.045"/>
+      </geometry>
+      <material name="body_panel"/>
+    </visual>
+    <visual>
+      <origin xyz="0.12 0 0.135" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.25 0.025"/>
+      </geometry>
+      <material name="accent_cyan"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.78 0.32 0.18"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="head_mount_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="head_link"/>
+    <origin xyz="0.48 0 0.03" rpy="0 0 0"/>
+  </joint>
+
+  <link name="head_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.14 0.20 0.12"/>
+      </geometry>
+      <material name="body_panel"/>
+    </visual>
+    <visual>
+      <origin xyz="0.075 0 0.01" rpy="0 1.57079632679 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.025"/>
+      </geometry>
+      <material name="accent_green"/>
+    </visual>
+  </link>
+
+  <joint name="sensor_mast_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="sensor_mast_link"/>
+    <origin xyz="-0.10 0 0.18" rpy="0 0 0"/>
+  </joint>
+
+  <link name="sensor_mast_link">
+    <visual>
+      <origin xyz="0 0 0.055" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.025" length="0.11"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.125" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.045"/>
+      </geometry>
+      <material name="accent_cyan"/>
+    </visual>
+  </link>
+
+  <joint name="front_left_hip_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_left_upper_leg_link"/>
+    <origin xyz="0.28 0.22 -0.06" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.20" upper="1.20" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="front_left_upper_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.055" length="0.10"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.11" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.065 0.075 0.22"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="front_left_knee_joint" type="revolute">
+    <parent link="front_left_upper_leg_link"/>
+    <child link="front_left_lower_leg_link"/>
+    <origin xyz="0 0 -0.22" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.50" upper="0.80" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="front_left_lower_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.09"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.095" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.055 0.065 0.19"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="front_left_wheel_joint" type="continuous">
+    <parent link="front_left_lower_leg_link"/>
+    <child link="front_left_wheel_link"/>
+    <origin xyz="0 0 -0.20" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="front_left_wheel_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.055"/>
+      </geometry>
+      <material name="wheel_rubber"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.040" length="0.060"/>
+      </geometry>
+      <material name="wheel_hub"/>
+    </visual>
+  </link>
+
+  <joint name="front_right_hip_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_right_upper_leg_link"/>
+    <origin xyz="0.28 -0.22 -0.06" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.20" upper="1.20" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="front_right_upper_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.055" length="0.10"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.11" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.065 0.075 0.22"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="front_right_knee_joint" type="revolute">
+    <parent link="front_right_upper_leg_link"/>
+    <child link="front_right_lower_leg_link"/>
+    <origin xyz="0 0 -0.22" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.50" upper="0.80" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="front_right_lower_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.09"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.095" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.055 0.065 0.19"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="front_right_wheel_joint" type="continuous">
+    <parent link="front_right_lower_leg_link"/>
+    <child link="front_right_wheel_link"/>
+    <origin xyz="0 0 -0.20" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="front_right_wheel_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.055"/>
+      </geometry>
+      <material name="wheel_rubber"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.040" length="0.060"/>
+      </geometry>
+      <material name="wheel_hub"/>
+    </visual>
+  </link>
+
+  <joint name="rear_left_hip_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="rear_left_upper_leg_link"/>
+    <origin xyz="-0.28 0.22 -0.06" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.20" upper="1.20" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="rear_left_upper_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.055" length="0.10"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.11" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.065 0.075 0.22"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="rear_left_knee_joint" type="revolute">
+    <parent link="rear_left_upper_leg_link"/>
+    <child link="rear_left_lower_leg_link"/>
+    <origin xyz="0 0 -0.22" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.50" upper="0.80" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="rear_left_lower_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.09"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.095" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.055 0.065 0.19"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="rear_left_wheel_joint" type="continuous">
+    <parent link="rear_left_lower_leg_link"/>
+    <child link="rear_left_wheel_link"/>
+    <origin xyz="0 0 -0.20" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="rear_left_wheel_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.055"/>
+      </geometry>
+      <material name="wheel_rubber"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.040" length="0.060"/>
+      </geometry>
+      <material name="wheel_hub"/>
+    </visual>
+  </link>
+
+  <joint name="rear_right_hip_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="rear_right_upper_leg_link"/>
+    <origin xyz="-0.28 -0.22 -0.06" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.20" upper="1.20" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="rear_right_upper_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.055" length="0.10"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.11" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.065 0.075 0.22"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="rear_right_knee_joint" type="revolute">
+    <parent link="rear_right_upper_leg_link"/>
+    <child link="rear_right_lower_leg_link"/>
+    <origin xyz="0 0 -0.22" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.50" upper="0.80" effort="20.0" velocity="4.0"/>
+  </joint>
+
+  <link name="rear_right_lower_leg_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.09"/>
+      </geometry>
+      <material name="joint_black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 -0.095" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.055 0.065 0.19"/>
+      </geometry>
+      <material name="leg_metal"/>
+    </visual>
+  </link>
+
+  <joint name="rear_right_wheel_joint" type="continuous">
+    <parent link="rear_right_lower_leg_link"/>
+    <child link="rear_right_wheel_link"/>
+    <origin xyz="0 0 -0.20" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="rear_right_wheel_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.055"/>
+      </geometry>
+      <material name="wheel_rubber"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+      <geometry>
+        <cylinder radius="0.040" length="0.060"/>
+      </geometry>
+      <material name="wheel_hub"/>
+    </visual>
+  </link>
+</robot>
