@@ -22,12 +22,13 @@ class DemoCommandNode(Node):
         self.last_segment_index = None
 
         self.segments = [
-            ('forward trot', 4.5, 0.45, 0.00),
-            ('left arc', 3.2, 0.34, 0.58),
-            ('right arc', 3.2, 0.34, -0.58),
-            ('slow reverse', 2.6, -0.26, 0.00),
-            ('turn in place', 2.4, 0.00, 0.95),
-            ('show stance', 1.6, 0.00, 0.00),
+            ('spring forward trot', 4.2, 0.45, 0.00, 0.00),
+            ('left side step', 3.0, 0.00, 0.32, 0.00),
+            ('right side step', 3.0, 0.00, -0.32, 0.00),
+            ('rotate left in place', 2.6, 0.00, 0.00, 0.85),
+            ('rotate right in place', 2.6, 0.00, 0.00, -0.85),
+            ('slow reverse trot', 2.8, -0.28, 0.00, 0.00),
+            ('show weighted stance', 1.6, 0.00, 0.00, 0.00),
         ]
         self.total_duration = sum(segment[1] for segment in self.segments)
 
@@ -48,13 +49,14 @@ class DemoCommandNode(Node):
                 selected = segment
                 break
 
-        label, _, linear_x, angular_z = selected
+        label, _, linear_x, linear_y, angular_z = selected
         if selected_index != self.last_segment_index:
             self.last_segment_index = selected_index
             self.get_logger().info(f'Demo segment: {label}')
 
         command = Twist()
         command.linear.x = linear_x
+        command.linear.y = linear_y
         command.angular.z = angular_z
         self.publisher.publish(command)
 

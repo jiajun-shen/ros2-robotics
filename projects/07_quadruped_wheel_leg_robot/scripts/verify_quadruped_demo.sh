@@ -29,9 +29,11 @@ timeout 8 ros2 topic echo /joint_states --once > "${joint_file}"
 timeout 8 ros2 topic echo /odom --once > "${odom_file}"
 timeout 8 ros2 topic echo /quadruped_path --once > "${path_file}"
 
+grep -q "front_left_hip_abduction_joint" "${joint_file}"
 grep -q "front_left_hip_joint" "${joint_file}"
 grep -q "rear_right_wheel_joint" "${joint_file}"
 grep -q "child_frame_id: base_footprint" "${odom_file}"
+grep -q "linear:" "${odom_file}"
 grep -q "poses:" "${path_file}"
 
 echo "Quadruped wheel-leg demo verification passed."

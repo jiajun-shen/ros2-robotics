@@ -2,8 +2,8 @@
 
 这个项目已经按作品集 demo 方式完成。以后如果要继续深入，可以按下面顺序拆开学习：
 
-1. `urdf/wheel_leg_quadruped.urdf`：四足轮腿机器人建模。
-2. `wheel_leg_motion_node.py`：`/cmd_vel`、`/odom`、TF 和 `/joint_states` 的核心控制逻辑。
+1. `urdf/wheel_leg_quadruped.urdf`：银白色四足轮腿机器人建模，包含质量、惯性和髋部侧摆关节。
+2. `wheel_leg_motion_node.py`：`/cmd_vel`、`/odom`、TF 和 `/joint_states` 的核心控制逻辑，支持前后、横移和原地转向步态。
 3. `demo_command_node.py`：自动演示速度命令。
 4. `on_screen_joystick_node.py`：圆盘方向键控制窗口，拖动摇杆发布 `/cmd_vel`。
 5. `virtual_joystick_node.py`：终端键盘摇杆控制。
@@ -13,7 +13,7 @@
 简历表达重点：
 
 ```text
-Built a ROS 2 wheel-legged quadruped RViz simulation with URDF robot modeling,
-trot gait joint animation, cmd_vel teleoperation, odometry, TF broadcasting,
-and path/status visualization.
+Built a ROS 2 wheel-legged quadruped RViz simulation with inertial URDF robot
+modeling, spring-like gait animation, side-step locomotion, cmd_vel
+teleoperation, odometry, TF broadcasting, and path/status visualization.
 ```

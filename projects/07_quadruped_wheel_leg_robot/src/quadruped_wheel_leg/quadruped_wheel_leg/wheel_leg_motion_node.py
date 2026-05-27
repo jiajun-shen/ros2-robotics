@@ -46,7 +46,9 @@ class WheelLegMotionNode(Node):
         self.declare_parameter('update_rate_hz', 40.0)
         self.declare_parameter('cmd_timeout_sec', 0.7)
         self.declare_parameter('max_linear_speed_mps', 0.75)
+        self.declare_parameter('max_lateral_speed_mps', 0.45)
         self.declare_parameter('max_angular_speed_radps', 1.45)
+        self.declare_parameter('robot_mass_kg', 12.3)
         self.declare_parameter('track_width_m', 0.44)
         self.declare_parameter('wheel_radius_m', 0.075)
         self.declare_parameter('path_publish_stride', 4)
@@ -55,7 +57,9 @@ class WheelLegMotionNode(Node):
         self.update_rate = float(self.get_parameter('update_rate_hz').value)
         self.cmd_timeout = float(self.get_parameter('cmd_timeout_sec').value)
         self.max_linear = float(self.get_parameter('max_linear_speed_mps').value)
+        self.max_lateral = float(self.get_parameter('max_lateral_speed_mps').value)
         self.max_angular = float(self.get_parameter('max_angular_speed_radps').value)
+        self.robot_mass = float(self.get_parameter('robot_mass_kg').value)
         self.track_width = float(self.get_parameter('track_width_m').value)
         self.wheel_radius = float(self.get_parameter('wheel_radius_m').value)
         self.path_publish_stride = int(self.get_parameter('path_publish_stride').value)
@@ -65,7 +69,8 @@ class WheelLegMotionNode(Node):
         self.yaw = 0.0
         self.gait_phase = 0.0
         self.body_bob = 0.0
-        self.linear_speed = 0.0
+        self.forward_speed = 0.0
+        self.lateral_speed = 0.0
         self.angular_speed = 0.0
         self.wheel_angles = {leg: 0.0 for leg in LEG_ORDER}
 
@@ -99,11 +104,16 @@ class WheelLegMotionNode(Node):
         )
 
     def cmd_vel_callback(self, message):
-        """接收速度命令：linear.x 控制前后，angular.z 控制左右转。"""
-        self.linear_speed = clamp(
+        """接收速度命令：linear.x 前后，linear.y 横移，angular.z 原地转向。"""
+        self.forward_speed = clamp(
             message.linear.x,
             -self.max_linear,
             self.max_linear,
+        )
+        self.lateral_speed = clamp(
+            message.linear.y,
+            -self.max_lateral,
+            self.max_lateral,
         )
         self.angular_speed = clamp(
             message.angular.z,
@@ -118,40 +128,48 @@ class WheelLegMotionNode(Node):
         self.last_update_time = now
         self.tick_count += 1
 
-        linear, angular = self.get_active_command(now)
-        self.integrate_base_motion(dt, linear, angular)
-        moving_strength = self.update_gait(dt, linear, angular)
+        forward, lateral, angular = self.get_active_command(now)
+        self.integrate_base_motion(dt, forward, lateral, angular)
+        moving_strength = self.update_gait(dt, forward, lateral, angular)
 
         quaternion = quaternion_from_yaw(self.yaw)
         self.publish_tf(now, quaternion)
-        self.publish_odom(now, quaternion, linear, angular)
-        self.publish_joint_states(now, dt, linear, angular, moving_strength)
+        self.publish_odom(now, quaternion, forward, lateral, angular)
+        self.publish_joint_states(now, dt, forward, lateral, angular, moving_strength)
         self.publish_path(now)
-        self.publish_markers(now, linear, angular, moving_strength)
+        self.publish_markers(now, forward, lateral, angular, moving_strength)
 
     def get_active_command(self, now):
         time_since_cmd = (now - self.last_cmd_time).nanoseconds / 1e9
         if time_since_cmd > self.cmd_timeout:
-            return 0.0, 0.0
-        return self.linear_speed, self.angular_speed
+            return 0.0, 0.0, 0.0
+        return self.forward_speed, self.lateral_speed, self.angular_speed
 
-    def integrate_base_motion(self, dt, linear, angular):
-        self.x += linear * math.cos(self.yaw) * dt
-        self.y += linear * math.sin(self.yaw) * dt
+    def integrate_base_motion(self, dt, forward, lateral, angular):
+        # ROS 机器人坐标系里 x 是前方，y 是左方。这里把机体坐标速度转换到 odom 坐标。
+        self.x += (forward * math.cos(self.yaw) - lateral * math.sin(self.yaw)) * dt
+        self.y += (forward * math.sin(self.yaw) + lateral * math.cos(self.yaw)) * dt
         self.yaw += angular * dt
         self.yaw = math.atan2(math.sin(self.yaw), math.cos(self.yaw))
 
-    def update_gait(self, dt, linear, angular):
-        command_strength = min(1.0, abs(linear) / 0.55 + abs(angular) / 1.8)
+    def update_gait(self, dt, forward, lateral, angular):
+        translation_speed = math.hypot(forward, lateral)
+        command_strength = min(
+            1.0,
+            translation_speed / 0.60 + 0.45 * abs(angular) / self.max_angular,
+        )
 
         if command_strength > 0.02:
             gait_frequency_hz = 1.15 + 1.25 * command_strength
-            direction = -1.0 if linear < -0.03 else 1.0
+            if abs(forward) > 0.03:
+                direction = -1.0 if forward < 0.0 else 1.0
+            elif abs(lateral) > 0.03:
+                direction = -1.0 if lateral < 0.0 else 1.0
+            else:
+                direction = -1.0 if angular < 0.0 else 1.0
             self.gait_phase += direction * 2.0 * math.pi * gait_frequency_hz * dt
-            self.body_bob = 0.020 * command_strength * max(
-                0.0,
-                math.sin(self.gait_phase * 2.0),
-            )
+            spring_wave = max(0.0, math.sin(self.gait_phase * 2.0))
+            self.body_bob = 0.010 + 0.024 * command_strength * spring_wave
         else:
             self.body_bob *= 0.85
 
@@ -172,7 +190,7 @@ class WheelLegMotionNode(Node):
         transform.transform.rotation.w = quaternion['w']
         self.tf_broadcaster.sendTransform(transform)
 
-    def publish_odom(self, now, quaternion, linear, angular):
+    def publish_odom(self, now, quaternion, forward, lateral, angular):
         odom = Odometry()
         odom.header.stamp = now.to_msg()
         odom.header.frame_id = 'odom'
@@ -184,33 +202,54 @@ class WheelLegMotionNode(Node):
         odom.pose.pose.orientation.y = quaternion['y']
         odom.pose.pose.orientation.z = quaternion['z']
         odom.pose.pose.orientation.w = quaternion['w']
-        odom.twist.twist.linear.x = linear
+        odom.twist.twist.linear.x = forward
+        odom.twist.twist.linear.y = lateral
         odom.twist.twist.angular.z = angular
         self.odom_publisher.publish(odom)
 
-    def publish_joint_states(self, now, dt, linear, angular, moving_strength):
+    def publish_joint_states(self, now, dt, forward, lateral, angular, moving_strength):
         joint_state = JointState()
         joint_state.header.stamp = now.to_msg()
 
         names = []
         positions = []
+        forward_ratio = forward / self.max_linear if self.max_linear > 0.0 else 0.0
+        lateral_ratio = lateral / self.max_lateral if self.max_lateral > 0.0 else 0.0
+        turn_ratio = angular / self.max_angular if self.max_angular > 0.0 else 0.0
 
         for leg in LEG_ORDER:
             leg_phase = self.gait_phase + LEG_PHASE_OFFSETS[leg]
-            hip_angle = 0.46 * moving_strength * math.sin(leg_phase)
-            knee_angle = -0.62 + 0.24 * moving_strength * math.cos(leg_phase)
-
+            swing_lift = max(0.0, math.sin(leg_phase))
             side_sign = 1.0 if leg.endswith('left') else -1.0
-            wheel_linear_speed = linear - angular * side_sign * self.track_width * 0.5
+
+            hip_abduction = (
+                0.07 * side_sign
+                + 0.36 * lateral_ratio * math.sin(leg_phase)
+                + 0.10 * side_sign * abs(turn_ratio) * math.sin(leg_phase)
+            )
+            hip_pitch = (
+                0.46 * moving_strength * math.sin(leg_phase) * (1.0 if forward >= 0.0 else -1.0)
+                + 0.22 * side_sign * turn_ratio * math.sin(leg_phase)
+            )
+            knee_angle = (
+                -0.66
+                + 0.15 * moving_strength * math.cos(leg_phase)
+                - 0.26 * moving_strength * swing_lift
+            )
+
+            # 轮足只对前后和原地转向滚动；横移主要靠腿部侧摆步态完成。
+            wheel_linear_speed = forward - angular * side_sign * self.track_width * 0.5
             self.wheel_angles[leg] += wheel_linear_speed * dt / self.wheel_radius
 
             names.extend([
+                f'{leg}_hip_abduction_joint',
                 f'{leg}_hip_joint',
                 f'{leg}_knee_joint',
                 f'{leg}_wheel_joint',
             ])
             positions.extend([
-                hip_angle,
+                hip_abduction,
+                hip_pitch,
                 knee_angle,
                 self.wheel_angles[leg],
             ])
@@ -240,11 +279,13 @@ class WheelLegMotionNode(Node):
         self.path.poses = self.path.poses[-700:]
         self.path_publisher.publish(self.path)
 
-    def publish_markers(self, now, linear, angular, moving_strength):
+    def publish_markers(self, now, forward, lateral, angular, moving_strength):
         markers = MarkerArray()
         markers.markers.append(self.make_ground_marker(now))
-        markers.markers.append(self.make_command_arrow_marker(now, linear, angular))
-        markers.markers.append(self.make_status_text_marker(now, linear, angular, moving_strength))
+        markers.markers.append(self.make_command_arrow_marker(now, forward, lateral, angular))
+        markers.markers.append(
+            self.make_status_text_marker(now, forward, lateral, angular, moving_strength)
+        )
         self.marker_publisher.publish(markers)
 
     def make_ground_marker(self, now):
@@ -267,7 +308,7 @@ class WheelLegMotionNode(Node):
         marker.color.a = 0.45
         return marker
 
-    def make_command_arrow_marker(self, now, linear, angular):
+    def make_command_arrow_marker(self, now, forward, lateral, angular):
         marker = Marker()
         marker.header.frame_id = 'base_footprint'
         marker.header.stamp = now.to_msg()
@@ -282,8 +323,13 @@ class WheelLegMotionNode(Node):
         start.z = 0.16
 
         end = Point()
-        end.x = max(0.18, abs(linear) * 1.0) * (1.0 if linear >= 0.0 else -1.0)
-        end.y = angular * 0.22
+        translation = math.hypot(forward, lateral)
+        if translation > 0.03:
+            end.x = forward * 0.95
+            end.y = lateral * 1.15
+        else:
+            end.x = 0.0
+            end.y = 0.24 * (1.0 if angular >= 0.0 else -1.0)
         end.z = 0.16
 
         marker.points = [start, end]
@@ -296,7 +342,7 @@ class WheelLegMotionNode(Node):
         marker.color.a = 0.85
         return marker
 
-    def make_status_text_marker(self, now, linear, angular, moving_strength):
+    def make_status_text_marker(self, now, forward, lateral, angular, moving_strength):
         marker = Marker()
         marker.header.frame_id = 'base_footprint'
         marker.header.stamp = now.to_msg()
@@ -311,8 +357,9 @@ class WheelLegMotionNode(Node):
         marker.color.b = 1.00
         marker.color.a = 0.95
         marker.text = (
-            f'wheel-leg quadruped | v={linear:+.2f} m/s '
-            f'w={angular:+.2f} rad/s | gait={moving_strength:.2f}'
+            f'wheel-leg quadruped | mass={self.robot_mass:.1f} kg | '
+            f'vx={forward:+.2f} vy={lateral:+.2f} wz={angular:+.2f} | '
+            f'gait={moving_strength:.2f}'
         )
         return marker
 

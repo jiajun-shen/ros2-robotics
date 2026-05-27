@@ -7,28 +7,31 @@ from rclpy.node import Node
 
 
 class OnScreenJoystickNode(Node):
-    """圆盘方向键：鼠标拖动圆盘里的摇杆，持续发布 /cmd_vel。"""
+    """圆盘方向键：圆盘控制前后/横移，按钮控制原地转向。"""
 
     def __init__(self):
         super().__init__('quadruped_on_screen_joystick_node')
 
         self.declare_parameter('cmd_topic', 'cmd_vel')
         self.declare_parameter('max_linear_speed_mps', 0.65)
+        self.declare_parameter('max_lateral_speed_mps', 0.42)
         self.declare_parameter('max_angular_speed_radps', 1.35)
         self.declare_parameter('publish_rate_hz', 20.0)
 
         self.cmd_topic = self.get_parameter('cmd_topic').value
         self.max_linear = float(self.get_parameter('max_linear_speed_mps').value)
+        self.max_lateral = float(self.get_parameter('max_lateral_speed_mps').value)
         self.max_angular = float(self.get_parameter('max_angular_speed_radps').value)
         self.publish_rate = float(self.get_parameter('publish_rate_hz').value)
 
         self.linear_x = 0.0
+        self.linear_y = 0.0
         self.angular_z = 0.0
         self.publisher = self.create_publisher(Twist, self.cmd_topic, 10)
 
         self.root = tk.Tk()
         self.root.title('ROS2 Wheel-Leg Dog Controller')
-        self.root.geometry('430x560')
+        self.root.geometry('460x650')
         self.root.configure(bg='#15191d')
         self.root.attributes('-topmost', True)
         self.root.protocol('WM_DELETE_WINDOW', self.close)
@@ -39,6 +42,7 @@ class OnScreenJoystickNode(Node):
         self.knob_radius = 34
         self.dragging = False
         self.closed = False
+        self.key_state = set()
 
         self.build_ui()
         self.bind_keyboard()
@@ -49,7 +53,7 @@ class OnScreenJoystickNode(Node):
 
         self.get_logger().info(
             f'On-screen joystick publishing /{self.cmd_topic}. '
-            'Drag the circular pad to move the robot.'
+            'Pad controls translation; turn buttons control yaw.'
         )
 
     def build_ui(self):
@@ -64,7 +68,7 @@ class OnScreenJoystickNode(Node):
 
         subtitle = tk.Label(
             self.root,
-            text='Drag inside the circle: forward, reverse, left, right',
+            text='Pad: forward/back and side-step | Q/E or buttons: rotate',
             bg='#15191d',
             fg='#9fb4c8',
             font=('Segoe UI', 10),
@@ -95,7 +99,25 @@ class OnScreenJoystickNode(Node):
         self.status_label.pack(pady=(14, 10))
 
         button_frame = tk.Frame(self.root, bg='#15191d')
-        button_frame.pack(pady=(0, 10))
+        button_frame.pack(pady=(0, 8))
+
+        rotate_left_button = tk.Button(
+            button_frame,
+            text='Turn Left',
+            width=12,
+            height=2,
+            bg='#263849',
+            fg='#eef6ff',
+            activebackground='#38536b',
+            activeforeground='white',
+            font=('Segoe UI', 10, 'bold'),
+        )
+        rotate_left_button.pack(side=tk.LEFT, padx=6)
+        rotate_left_button.bind(
+            '<ButtonPress-1>',
+            lambda event: self.set_command(0.0, 0.0, self.max_angular * 0.68),
+        )
+        rotate_left_button.bind('<ButtonRelease-1>', lambda event: self.stop_robot())
 
         stop_button = tk.Button(
             button_frame,
@@ -109,10 +131,31 @@ class OnScreenJoystickNode(Node):
             activeforeground='white',
             font=('Segoe UI', 11, 'bold'),
         )
-        stop_button.pack(side=tk.LEFT, padx=8)
+        stop_button.pack(side=tk.LEFT, padx=6)
+
+        rotate_right_button = tk.Button(
+            button_frame,
+            text='Turn Right',
+            width=12,
+            height=2,
+            bg='#263849',
+            fg='#eef6ff',
+            activebackground='#38536b',
+            activeforeground='white',
+            font=('Segoe UI', 10, 'bold'),
+        )
+        rotate_right_button.pack(side=tk.LEFT, padx=6)
+        rotate_right_button.bind(
+            '<ButtonPress-1>',
+            lambda event: self.set_command(0.0, 0.0, -self.max_angular * 0.68),
+        )
+        rotate_right_button.bind('<ButtonRelease-1>', lambda event: self.stop_robot())
+
+        close_frame = tk.Frame(self.root, bg='#15191d')
+        close_frame.pack(pady=(0, 8))
 
         close_button = tk.Button(
-            button_frame,
+            close_frame,
             text='Close',
             command=self.close,
             width=12,
@@ -127,7 +170,7 @@ class OnScreenJoystickNode(Node):
 
         hint = tk.Label(
             self.root,
-            text='Keyboard also works: W/S forward/back, A/D turn, Space stop',
+            text='Keyboard: W/S forward/back, A/D side-step, Q/E rotate, Space stop',
             bg='#15191d',
             fg='#7f95a8',
             font=('Segoe UI', 9),
@@ -161,8 +204,8 @@ class OnScreenJoystickNode(Node):
 
         self.canvas.create_text(c, c - r - 22, text='FORWARD', fill='#d9f8ff')
         self.canvas.create_text(c, c + r + 22, text='REVERSE', fill='#d9f8ff')
-        self.canvas.create_text(c - r - 28, c, text='LEFT', fill='#d9f8ff')
-        self.canvas.create_text(c + r + 30, c, text='RIGHT', fill='#d9f8ff')
+        self.canvas.create_text(c - r - 28, c, text='STEP L', fill='#d9f8ff')
+        self.canvas.create_text(c + r + 30, c, text='STEP R', fill='#d9f8ff')
 
         self.knob = self.canvas.create_oval(
             c - self.knob_radius,
@@ -183,14 +226,9 @@ class OnScreenJoystickNode(Node):
         )
 
     def bind_keyboard(self):
-        self.root.bind('<KeyPress-w>', lambda event: self.set_command(0.45, 0.0))
-        self.root.bind('<KeyPress-s>', lambda event: self.set_command(-0.35, 0.0))
-        self.root.bind('<KeyPress-a>', lambda event: self.set_command(0.0, 0.9))
-        self.root.bind('<KeyPress-d>', lambda event: self.set_command(0.0, -0.9))
-        self.root.bind('<KeyRelease-w>', lambda event: self.stop_robot())
-        self.root.bind('<KeyRelease-s>', lambda event: self.stop_robot())
-        self.root.bind('<KeyRelease-a>', lambda event: self.stop_robot())
-        self.root.bind('<KeyRelease-d>', lambda event: self.stop_robot())
+        for key in ('w', 's', 'a', 'd', 'q', 'e'):
+            self.root.bind(f'<KeyPress-{key}>', self.on_key_press)
+            self.root.bind(f'<KeyRelease-{key}>', self.on_key_release)
         self.root.bind('<space>', lambda event: self.stop_robot())
 
     def on_press(self, event):
@@ -215,14 +253,43 @@ class OnScreenJoystickNode(Node):
             dx *= scale
             dy *= scale
 
-        # 画面上方代表前进；画面左侧代表左转。
-        linear = (-dy / self.outer_radius) * self.max_linear
-        angular = (-dx / self.outer_radius) * self.max_angular
-        self.set_command(linear, angular)
+        # 画面上方代表前进；画面左侧代表向左平移，不再代表转向。
+        forward = (-dy / self.outer_radius) * self.max_linear
+        lateral = (-dx / self.outer_radius) * self.max_lateral
+        self.set_command(forward, lateral, 0.0)
         self.move_knob(self.center + dx, self.center + dy)
 
-    def set_command(self, linear, angular):
+    def on_key_press(self, event):
+        self.key_state.add(event.keysym.lower())
+        self.update_command_from_keys()
+
+    def on_key_release(self, event):
+        self.key_state.discard(event.keysym.lower())
+        self.update_command_from_keys()
+
+    def update_command_from_keys(self):
+        forward = 0.0
+        lateral = 0.0
+        angular = 0.0
+
+        if 'w' in self.key_state:
+            forward += self.max_linear * 0.70
+        if 's' in self.key_state:
+            forward -= self.max_linear * 0.55
+        if 'a' in self.key_state:
+            lateral += self.max_lateral * 0.80
+        if 'd' in self.key_state:
+            lateral -= self.max_lateral * 0.80
+        if 'q' in self.key_state:
+            angular += self.max_angular * 0.68
+        if 'e' in self.key_state:
+            angular -= self.max_angular * 0.68
+
+        self.set_command(forward, lateral, angular)
+
+    def set_command(self, linear, lateral, angular):
         self.linear_x = max(-self.max_linear, min(self.max_linear, linear))
+        self.linear_y = max(-self.max_lateral, min(self.max_lateral, lateral))
         self.angular_z = max(-self.max_angular, min(self.max_angular, angular))
         self.update_status_text()
 
@@ -238,7 +305,9 @@ class OnScreenJoystickNode(Node):
 
     def stop_robot(self):
         self.linear_x = 0.0
+        self.linear_y = 0.0
         self.angular_z = 0.0
+        self.key_state.clear()
         self.move_knob(self.center, self.center)
         self.update_status_text()
         self.publish_command()
@@ -246,7 +315,11 @@ class OnScreenJoystickNode(Node):
     def update_status_text(self):
         if hasattr(self, 'status_label'):
             self.status_label.configure(
-                text=f'linear.x={self.linear_x:+.2f} m/s   angular.z={self.angular_z:+.2f} rad/s'
+                text=(
+                    f'vx={self.linear_x:+.2f} m/s   '
+                    f'vy={self.linear_y:+.2f} m/s   '
+                    f'wz={self.angular_z:+.2f} rad/s'
+                )
             )
 
     def publish_loop(self):
@@ -259,12 +332,14 @@ class OnScreenJoystickNode(Node):
     def publish_command(self):
         command = Twist()
         command.linear.x = self.linear_x
+        command.linear.y = self.linear_y
         command.angular.z = self.angular_z
         self.publisher.publish(command)
 
     def close(self):
         self.closed = True
         self.linear_x = 0.0
+        self.linear_y = 0.0
         self.angular_z = 0.0
         for _ in range(5):
             self.publish_command()
