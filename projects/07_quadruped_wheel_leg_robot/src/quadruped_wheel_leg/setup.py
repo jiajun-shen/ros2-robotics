@@ -34,6 +34,7 @@ setup(
     entry_points={
         'console_scripts': [
             'demo_command_node = quadruped_wheel_leg.demo_command_node:main',
+            'on_screen_joystick_node = quadruped_wheel_leg.on_screen_joystick_node:main',
             'virtual_joystick_node = quadruped_wheel_leg.virtual_joystick_node:main',
             'wheel_leg_motion_node = quadruped_wheel_leg.wheel_leg_motion_node:main',
         ],

@@ -59,7 +59,44 @@ ros2 launch quadruped_wheel_leg wheel_leg_demo.launch.py
 
 如果 WSL/RViz 窗口偶尔空白，可以先关掉 RViz 再重新运行。launch 已经默认使用更稳定的软件渲染参数。
 
-## Run With Manual Keyboard Control
+## Manual Control Rule
+
+先注意一个规则：
+
+```text
+一次只运行一套 quadruped launch。
+如果你已经开了自动 demo，先在那个终端按 Ctrl+C，再打开手动控制。
+```
+
+如果已经误开两套，RViz 里出现抖动、红色箭头乱飘、绿色轨迹乱颤，先清理：
+
+```bash
+cd ~/ros2_ws
+projects/07_quadruped_wheel_leg_robot/scripts/stop_quadruped_demo.sh
+```
+
+## Run With Circular On-Screen Joystick
+
+推荐使用这个方式。它会一次性启动机器人、RViz 和一个圆盘方向键控制窗口。
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 launch quadruped_wheel_leg wheel_leg_joystick.launch.py
+```
+
+圆盘控制方式：
+
+```text
+往上拖：前进
+往下拖：后退
+往左拖：左转
+往右拖：右转
+松开鼠标：停止
+```
+
+## Run With Terminal Keyboard Control
 
 终端 1：
 

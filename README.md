@@ -19,22 +19,22 @@
 
 为了让 `colcon build` 继续保持 ROS 2 标准习惯，根目录的 `src/` 会保留指向项目代码的入口。
 
-1. [`projects/01_ros2_core_basics`](projects/01_ros2_core_basics)  
+1. [`projects/01_ros2_core_basics`](projects/01_ros2_core_basics)
    ROS 2 核心基础：node、topic、publisher、subscriber、service、action、parameter、launch。
 
-2. [`projects/02_mini_amr_simulation`](projects/02_mini_amr_simulation)  
+2. [`projects/02_mini_amr_simulation`](projects/02_mini_amr_simulation)
    差速移动机器人仿真：URDF/xacro、RViz、Gazebo、ros2_control、传感器 topic。
 
-3. [`projects/03_warehouse_navigation`](projects/03_warehouse_navigation)  
+3. [`projects/03_warehouse_navigation`](projects/03_warehouse_navigation)
    仓储机器人自主导航：SLAM、Nav2、地图、定位、路径规划、避障。
 
-4. [`projects/04_perception_to_action`](projects/04_perception_to_action)  
+4. [`projects/04_perception_to_action`](projects/04_perception_to_action)
    感知驱动行为：相机 topic、OpenCV、目标检测、检测结果转机器人动作。
 
-5. [`projects/05_manipulation_pick_and_place`](projects/05_manipulation_pick_and_place)  
+5. [`projects/05_manipulation_pick_and_place`](projects/05_manipulation_pick_and_place)
    机械臂抓取放置：MoveIt 2、运动规划、planning scene、夹爪控制。
 
-6. [`projects/06_embodied_ai_task_executor`](projects/06_embodied_ai_task_executor)  
+6. [`projects/06_embodied_ai_task_executor`](projects/06_embodied_ai_task_executor)
    具身智能任务执行：自然语言目标解析，调用导航、感知、操作模块完成任务。
 
 7. [`projects/07_quadruped_wheel_leg_robot`](projects/07_quadruped_wheel_leg_robot)
@@ -231,7 +231,19 @@ source install/setup.bash
 ros2 launch quadruped_wheel_leg wheel_leg_demo.launch.py
 ```
 
-Run manual keyboard joystick:
+Run circular on-screen joystick:
+
+```bash
+ros2 launch quadruped_wheel_leg wheel_leg_joystick.launch.py
+```
+
+If you accidentally launched two quadruped demos and RViz starts shaking:
+
+```bash
+projects/07_quadruped_wheel_leg_robot/scripts/stop_quadruped_demo.sh
+```
+
+Terminal keyboard control is also available:
 
 ```bash
 ros2 launch quadruped_wheel_leg wheel_leg_demo.launch.py auto_demo:=false
