@@ -5,6 +5,7 @@ from geometry_msgs.msg import Point, PoseStamped, TransformStamped, Twist
 from nav_msgs.msg import Odometry, Path
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
+from std_msgs.msg import String
 from tf2_ros import TransformBroadcaster
 from visualization_msgs.msg import Marker, MarkerArray
 
@@ -18,6 +19,7 @@ LEG_PHASE_OFFSETS = {
 }
 
 LEG_ORDER = ['front_left', 'front_right', 'rear_left', 'rear_right']
+DRIVE_MODES = ('walk', 'wheel', 'hybrid')
 
 
 def clamp(value, min_value, max_value):
@@ -43,6 +45,8 @@ class WheelLegMotionNode(Node):
         super().__init__('wheel_leg_motion_node')
 
         self.declare_parameter('cmd_topic', 'cmd_vel')
+        self.declare_parameter('drive_mode_topic', 'quadruped_drive_mode')
+        self.declare_parameter('drive_mode', 'hybrid')
         self.declare_parameter('update_rate_hz', 40.0)
         self.declare_parameter('cmd_timeout_sec', 0.7)
         self.declare_parameter('max_linear_speed_mps', 0.75)
@@ -54,6 +58,10 @@ class WheelLegMotionNode(Node):
         self.declare_parameter('path_publish_stride', 4)
 
         self.cmd_topic = self.get_parameter('cmd_topic').value
+        self.drive_mode_topic = self.get_parameter('drive_mode_topic').value
+        self.drive_mode = self.sanitize_drive_mode(
+            self.get_parameter('drive_mode').value
+        )
         self.update_rate = float(self.get_parameter('update_rate_hz').value)
         self.cmd_timeout = float(self.get_parameter('cmd_timeout_sec').value)
         self.max_linear = float(self.get_parameter('max_linear_speed_mps').value)
@@ -87,6 +95,12 @@ class WheelLegMotionNode(Node):
             self.cmd_vel_callback,
             10,
         )
+        self.drive_mode_subscriber = self.create_subscription(
+            String,
+            self.drive_mode_topic,
+            self.drive_mode_callback,
+            10,
+        )
         self.joint_publisher = self.create_publisher(JointState, 'joint_states', 10)
         self.odom_publisher = self.create_publisher(Odometry, 'odom', 10)
         self.path_publisher = self.create_publisher(Path, 'quadruped_path', 10)
@@ -100,8 +114,15 @@ class WheelLegMotionNode(Node):
         self.timer = self.create_timer(1.0 / self.update_rate, self.update)
 
         self.get_logger().info(
-            f'Wheel-leg quadruped started. Listening to /{self.cmd_topic}.'
+            f'Wheel-leg quadruped started. Listening to /{self.cmd_topic}; '
+            f'drive mode={self.drive_mode}.'
         )
+
+    def sanitize_drive_mode(self, mode):
+        mode_text = str(mode).strip().lower()
+        if mode_text not in DRIVE_MODES:
+            return 'hybrid'
+        return mode_text
 
     def cmd_vel_callback(self, message):
         """接收速度命令：linear.x 前后，linear.y 横移，angular.z 原地转向。"""
@@ -121,6 +142,13 @@ class WheelLegMotionNode(Node):
             self.max_angular,
         )
         self.last_cmd_time = self.get_clock().now()
+
+    def drive_mode_callback(self, message):
+        """切换步行/轮行/混合模式。"""
+        next_mode = self.sanitize_drive_mode(message.data)
+        if next_mode != self.drive_mode:
+            self.drive_mode = next_mode
+            self.get_logger().info(f'Drive mode changed to {self.drive_mode}.')
 
     def update(self):
         now = self.get_clock().now()
@@ -153,14 +181,16 @@ class WheelLegMotionNode(Node):
         self.yaw = math.atan2(math.sin(self.yaw), math.cos(self.yaw))
 
     def update_gait(self, dt, forward, lateral, angular):
+        leg_blend, _ = self.drive_mode_blend()
         translation_speed = math.hypot(forward, lateral)
         command_strength = min(
             1.0,
             translation_speed / 0.60 + 0.45 * abs(angular) / self.max_angular,
         )
+        gait_strength = command_strength * leg_blend
 
         if command_strength > 0.02:
-            gait_frequency_hz = 1.15 + 1.25 * command_strength
+            gait_frequency_hz = 1.05 + 1.35 * max(gait_strength, 0.28 * command_strength)
             if abs(forward) > 0.03:
                 direction = -1.0 if forward < 0.0 else 1.0
             elif abs(lateral) > 0.03:
@@ -169,12 +199,20 @@ class WheelLegMotionNode(Node):
                 direction = -1.0 if angular < 0.0 else 1.0
             self.gait_phase += direction * 2.0 * math.pi * gait_frequency_hz * dt
             spring_wave = max(0.0, math.sin(self.gait_phase * 2.0))
-            self.body_bob = 0.010 + 0.024 * command_strength * spring_wave
+            self.body_bob = 0.006 + 0.026 * gait_strength * spring_wave
         else:
             self.body_bob *= 0.85
 
         self.gait_phase = math.atan2(math.sin(self.gait_phase), math.cos(self.gait_phase))
         return command_strength
+
+    def drive_mode_blend(self):
+        """返回腿部步态权重和轮足滚动权重。"""
+        if self.drive_mode == 'walk':
+            return 1.0, 0.18
+        if self.drive_mode == 'wheel':
+            return 0.18, 1.0
+        return 0.68, 1.0
 
     def publish_tf(self, now, quaternion):
         transform = TransformStamped()
@@ -216,29 +254,41 @@ class WheelLegMotionNode(Node):
         forward_ratio = forward / self.max_linear if self.max_linear > 0.0 else 0.0
         lateral_ratio = lateral / self.max_lateral if self.max_lateral > 0.0 else 0.0
         turn_ratio = angular / self.max_angular if self.max_angular > 0.0 else 0.0
+        leg_blend, wheel_blend = self.drive_mode_blend()
+        gait_strength = moving_strength * leg_blend
+        forward_step = min(1.0, abs(forward_ratio))
+        lateral_step = min(1.0, abs(lateral_ratio))
+        turn_step = min(1.0, abs(turn_ratio))
 
         for leg in LEG_ORDER:
             leg_phase = self.gait_phase + LEG_PHASE_OFFSETS[leg]
             swing_lift = max(0.0, math.sin(leg_phase))
             side_sign = 1.0 if leg.endswith('left') else -1.0
+            fore_sign = 1.0 if leg.startswith('front') else -1.0
 
             hip_abduction = (
                 0.07 * side_sign
-                + 0.36 * lateral_ratio * math.sin(leg_phase)
-                + 0.10 * side_sign * abs(turn_ratio) * math.sin(leg_phase)
+                + 0.38 * gait_strength * lateral_ratio * math.sin(leg_phase)
+                + 0.13 * gait_strength * side_sign * turn_step * math.cos(leg_phase)
             )
             hip_pitch = (
-                0.46 * moving_strength * math.sin(leg_phase) * (1.0 if forward >= 0.0 else -1.0)
-                + 0.22 * side_sign * turn_ratio * math.sin(leg_phase)
+                0.50 * gait_strength * forward_step * math.sin(leg_phase) * (1.0 if forward >= 0.0 else -1.0)
+                + 0.12 * gait_strength * lateral_step * side_sign * math.cos(leg_phase)
+                + 0.40 * gait_strength * side_sign * turn_ratio * math.sin(leg_phase)
+                + 0.06 * (1.0 - leg_blend) * forward_ratio
             )
             knee_angle = (
                 -0.66
-                + 0.15 * moving_strength * math.cos(leg_phase)
-                - 0.26 * moving_strength * swing_lift
+                + 0.12 * gait_strength * math.cos(leg_phase)
+                - 0.31 * gait_strength * swing_lift
+                - 0.05 * gait_strength * turn_step * fore_sign * side_sign
+                + 0.04 * (1.0 - leg_blend) * abs(forward_ratio)
             )
 
-            # 轮足只对前后和原地转向滚动；横移主要靠腿部侧摆步态完成。
-            wheel_linear_speed = forward - angular * side_sign * self.track_width * 0.5
+            # 履轮/轮足负责前后滚动和差速转向；横移仍主要靠腿部侧摆步态完成。
+            wheel_linear_speed = (
+                forward - angular * side_sign * self.track_width * 0.5
+            ) * wheel_blend
             self.wheel_angles[leg] += wheel_linear_speed * dt / self.wheel_radius
 
             names.extend([
@@ -357,7 +407,7 @@ class WheelLegMotionNode(Node):
         marker.color.b = 1.00
         marker.color.a = 0.95
         marker.text = (
-            f'wheel-leg quadruped | mass={self.robot_mass:.1f} kg | '
+            f'wheel-leg quadruped | mode={self.drive_mode} | mass={self.robot_mass:.1f} kg | '
             f'vx={forward:+.2f} vy={lateral:+.2f} wz={angular:+.2f} | '
             f'gait={moving_strength:.2f}'
         )

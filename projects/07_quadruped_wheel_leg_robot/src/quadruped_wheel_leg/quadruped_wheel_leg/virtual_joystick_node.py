@@ -6,6 +6,7 @@ import tty
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from std_msgs.msg import String
 
 
 HELP_TEXT = """
@@ -14,6 +15,7 @@ Virtual joystick for the wheel-leg quadruped
   w/s : forward / backward
   a/d : side-step left / side-step right
   q/e : turn left / turn right
+  1/2/3 : walk / wheel / hybrid drive mode
   space : stop
   x : exit
 """
@@ -26,6 +28,7 @@ class VirtualJoystickNode(Node):
         super().__init__('quadruped_virtual_joystick_node')
 
         self.declare_parameter('cmd_topic', 'cmd_vel')
+        self.declare_parameter('drive_mode_topic', 'quadruped_drive_mode')
         self.declare_parameter('linear_step_mps', 0.12)
         self.declare_parameter('lateral_step_mps', 0.08)
         self.declare_parameter('angular_step_radps', 0.22)
@@ -35,6 +38,7 @@ class VirtualJoystickNode(Node):
         self.declare_parameter('publish_rate_hz', 12.0)
 
         self.cmd_topic = self.get_parameter('cmd_topic').value
+        self.drive_mode_topic = self.get_parameter('drive_mode_topic').value
         self.linear_step = float(self.get_parameter('linear_step_mps').value)
         self.lateral_step = float(self.get_parameter('lateral_step_mps').value)
         self.angular_step = float(self.get_parameter('angular_step_radps').value)
@@ -46,7 +50,13 @@ class VirtualJoystickNode(Node):
         self.linear_x = 0.0
         self.linear_y = 0.0
         self.angular_z = 0.0
+        self.drive_mode = 'hybrid'
         self.publisher = self.create_publisher(Twist, self.cmd_topic, 10)
+        self.mode_publisher = self.create_publisher(
+            String,
+            self.drive_mode_topic,
+            10,
+        )
 
         self.stdin_is_tty = sys.stdin.isatty()
         self.original_terminal_settings = None
@@ -89,6 +99,12 @@ class VirtualJoystickNode(Node):
             self.angular_z = min(self.max_angular, self.angular_z + self.angular_step)
         elif key == 'e':
             self.angular_z = max(-self.max_angular, self.angular_z - self.angular_step)
+        elif key == '1':
+            self.set_drive_mode('walk')
+        elif key == '2':
+            self.set_drive_mode('wheel')
+        elif key == '3':
+            self.set_drive_mode('hybrid')
         elif key == ' ':
             self.linear_x = 0.0
             self.linear_y = 0.0
@@ -103,10 +119,22 @@ class VirtualJoystickNode(Node):
             return
 
         self.get_logger().info(
-            f'cmd_vel: linear.x={self.linear_x:+.2f}, '
+            f'mode={self.drive_mode}, '
+            f'linear.x={self.linear_x:+.2f}, '
             f'linear.y={self.linear_y:+.2f}, '
             f'angular.z={self.angular_z:+.2f}'
         )
+
+    def set_drive_mode(self, mode):
+        if mode not in ('walk', 'wheel', 'hybrid'):
+            return
+        self.drive_mode = mode
+        self.publish_mode()
+
+    def publish_mode(self):
+        message = String()
+        message.data = self.drive_mode
+        self.mode_publisher.publish(message)
 
     def publish_command(self):
         command = Twist()
@@ -114,6 +142,7 @@ class VirtualJoystickNode(Node):
         command.linear.y = self.linear_y
         command.angular.z = self.angular_z
         self.publisher.publish(command)
+        self.publish_mode()
 
     def restore_terminal(self):
         if self.original_terminal_settings is not None:

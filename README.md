@@ -38,7 +38,7 @@
    具身智能任务执行：自然语言目标解析，调用导航、感知、操作模块完成任务。
 
 7. [`projects/07_quadruped_wheel_leg_robot`](projects/07_quadruped_wheel_leg_robot)
-   轮腿式四足机器狗 RViz 仿真：银白色 URDF 建模、质量/惯性、弹簧感步态、左右侧步、`cmd_vel` 控制、里程计、TF 和运动轨迹可视化。
+   轮腿式四足机器狗 RViz 仿真：银白色 URDF 建模、质量/惯性、四色腿、深灰履轮足、walk/wheel/hybrid 模式、左右侧步、`cmd_vel` 控制、里程计、TF 和运动轨迹可视化。
 
 ## Repository Structure
 

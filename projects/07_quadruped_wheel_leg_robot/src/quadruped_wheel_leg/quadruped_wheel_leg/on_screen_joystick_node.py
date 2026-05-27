@@ -4,6 +4,7 @@ import tkinter as tk
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from std_msgs.msg import String
 
 
 class OnScreenJoystickNode(Node):
@@ -13,12 +14,18 @@ class OnScreenJoystickNode(Node):
         super().__init__('quadruped_on_screen_joystick_node')
 
         self.declare_parameter('cmd_topic', 'cmd_vel')
+        self.declare_parameter('drive_mode_topic', 'quadruped_drive_mode')
+        self.declare_parameter('default_drive_mode', 'hybrid')
         self.declare_parameter('max_linear_speed_mps', 0.65)
         self.declare_parameter('max_lateral_speed_mps', 0.42)
         self.declare_parameter('max_angular_speed_radps', 1.35)
         self.declare_parameter('publish_rate_hz', 20.0)
 
         self.cmd_topic = self.get_parameter('cmd_topic').value
+        self.drive_mode_topic = self.get_parameter('drive_mode_topic').value
+        self.drive_mode = self.sanitize_drive_mode(
+            self.get_parameter('default_drive_mode').value
+        )
         self.max_linear = float(self.get_parameter('max_linear_speed_mps').value)
         self.max_lateral = float(self.get_parameter('max_lateral_speed_mps').value)
         self.max_angular = float(self.get_parameter('max_angular_speed_radps').value)
@@ -28,10 +35,15 @@ class OnScreenJoystickNode(Node):
         self.linear_y = 0.0
         self.angular_z = 0.0
         self.publisher = self.create_publisher(Twist, self.cmd_topic, 10)
+        self.mode_publisher = self.create_publisher(
+            String,
+            self.drive_mode_topic,
+            10,
+        )
 
         self.root = tk.Tk()
         self.root.title('ROS2 Wheel-Leg Dog Controller')
-        self.root.geometry('460x650')
+        self.root.geometry('500x720')
         self.root.configure(bg='#15191d')
         self.root.attributes('-topmost', True)
         self.root.protocol('WM_DELETE_WINDOW', self.close)
@@ -47,14 +59,21 @@ class OnScreenJoystickNode(Node):
         self.build_ui()
         self.bind_keyboard()
         self.update_status_text()
+        self.publish_mode()
 
         publish_period_ms = max(20, int(1000.0 / self.publish_rate))
         self.root.after(publish_period_ms, self.publish_loop)
 
         self.get_logger().info(
             f'On-screen joystick publishing /{self.cmd_topic}. '
-            'Pad controls translation; turn buttons control yaw.'
+            f'Pad controls translation; mode={self.drive_mode}.'
         )
+
+    def sanitize_drive_mode(self, mode):
+        mode_text = str(mode).strip().lower()
+        if mode_text not in ('walk', 'wheel', 'hybrid'):
+            return 'hybrid'
+        return mode_text
 
     def build_ui(self):
         title = tk.Label(
@@ -74,6 +93,38 @@ class OnScreenJoystickNode(Node):
             font=('Segoe UI', 10),
         )
         subtitle.pack(pady=(0, 12))
+
+        self.mode_label = tk.Label(
+            self.root,
+            text='',
+            bg='#15191d',
+            fg='#d7ecff',
+            font=('Segoe UI', 11, 'bold'),
+        )
+        self.mode_label.pack(pady=(0, 6))
+
+        mode_frame = tk.Frame(self.root, bg='#15191d')
+        mode_frame.pack(pady=(0, 12))
+
+        mode_buttons = [
+            ('Walk Steps', 'walk'),
+            ('Wheel Drive', 'wheel'),
+            ('Hybrid', 'hybrid'),
+        ]
+        for label, mode in mode_buttons:
+            button = tk.Button(
+                mode_frame,
+                text=label,
+                command=lambda selected=mode: self.set_drive_mode(selected),
+                width=12,
+                height=2,
+                bg='#22303c',
+                fg='#eef6ff',
+                activebackground='#34495a',
+                activeforeground='white',
+                font=('Segoe UI', 10, 'bold'),
+            )
+            button.pack(side=tk.LEFT, padx=5)
 
         self.canvas = tk.Canvas(
             self.root,
@@ -170,7 +221,7 @@ class OnScreenJoystickNode(Node):
 
         hint = tk.Label(
             self.root,
-            text='Keyboard: W/S forward/back, A/D side-step, Q/E rotate, Space stop',
+            text='Keyboard: 1 walk, 2 wheel, 3 hybrid | W/S, A/D, Q/E, Space',
             bg='#15191d',
             fg='#7f95a8',
             font=('Segoe UI', 9),
@@ -226,7 +277,7 @@ class OnScreenJoystickNode(Node):
         )
 
     def bind_keyboard(self):
-        for key in ('w', 's', 'a', 'd', 'q', 'e'):
+        for key in ('w', 's', 'a', 'd', 'q', 'e', '1', '2', '3'):
             self.root.bind(f'<KeyPress-{key}>', self.on_key_press)
             self.root.bind(f'<KeyRelease-{key}>', self.on_key_release)
         self.root.bind('<space>', lambda event: self.stop_robot())
@@ -260,7 +311,17 @@ class OnScreenJoystickNode(Node):
         self.move_knob(self.center + dx, self.center + dy)
 
     def on_key_press(self, event):
-        self.key_state.add(event.keysym.lower())
+        key = event.keysym.lower()
+        if key == '1':
+            self.set_drive_mode('walk')
+            return
+        if key == '2':
+            self.set_drive_mode('wheel')
+            return
+        if key == '3':
+            self.set_drive_mode('hybrid')
+            return
+        self.key_state.add(key)
         self.update_command_from_keys()
 
     def on_key_release(self, event):
@@ -293,6 +354,16 @@ class OnScreenJoystickNode(Node):
         self.angular_z = max(-self.max_angular, min(self.max_angular, angular))
         self.update_status_text()
 
+    def set_drive_mode(self, mode):
+        self.drive_mode = self.sanitize_drive_mode(mode)
+        self.publish_mode()
+        self.update_status_text()
+
+    def publish_mode(self):
+        message = String()
+        message.data = self.drive_mode
+        self.mode_publisher.publish(message)
+
     def move_knob(self, x, y):
         self.canvas.coords(
             self.knob,
@@ -316,10 +387,15 @@ class OnScreenJoystickNode(Node):
         if hasattr(self, 'status_label'):
             self.status_label.configure(
                 text=(
+                    f'mode={self.drive_mode}   '
                     f'vx={self.linear_x:+.2f} m/s   '
                     f'vy={self.linear_y:+.2f} m/s   '
                     f'wz={self.angular_z:+.2f} rad/s'
                 )
+            )
+        if hasattr(self, 'mode_label'):
+            self.mode_label.configure(
+                text=f'Drive Mode: {self.drive_mode.upper()}'
             )
 
     def publish_loop(self):
@@ -327,6 +403,7 @@ class OnScreenJoystickNode(Node):
             return
 
         self.publish_command()
+        self.publish_mode()
         self.root.after(max(20, int(1000.0 / self.publish_rate)), self.publish_loop)
 
     def publish_command(self):

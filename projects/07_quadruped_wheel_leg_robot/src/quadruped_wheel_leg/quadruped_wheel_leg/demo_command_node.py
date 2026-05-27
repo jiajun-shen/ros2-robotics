@@ -3,6 +3,7 @@ import math
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from std_msgs.msg import String
 
 
 class DemoCommandNode(Node):
@@ -12,23 +13,31 @@ class DemoCommandNode(Node):
         super().__init__('quadruped_demo_command_node')
 
         self.declare_parameter('cmd_topic', 'cmd_vel')
+        self.declare_parameter('drive_mode_topic', 'quadruped_drive_mode')
         self.declare_parameter('publish_rate_hz', 20.0)
 
         self.cmd_topic = self.get_parameter('cmd_topic').value
+        self.drive_mode_topic = self.get_parameter('drive_mode_topic').value
         self.publish_rate = float(self.get_parameter('publish_rate_hz').value)
 
         self.publisher = self.create_publisher(Twist, self.cmd_topic, 10)
+        self.mode_publisher = self.create_publisher(
+            String,
+            self.drive_mode_topic,
+            10,
+        )
         self.start_time = self.get_clock().now()
         self.last_segment_index = None
 
         self.segments = [
-            ('spring forward trot', 4.2, 0.45, 0.00, 0.00),
-            ('left side step', 3.0, 0.00, 0.32, 0.00),
-            ('right side step', 3.0, 0.00, -0.32, 0.00),
-            ('rotate left in place', 2.6, 0.00, 0.00, 0.85),
-            ('rotate right in place', 2.6, 0.00, 0.00, -0.85),
-            ('slow reverse trot', 2.8, -0.28, 0.00, 0.00),
-            ('show weighted stance', 1.6, 0.00, 0.00, 0.00),
+            ('hybrid forward: legs plus wheels', 4.0, 'hybrid', 0.45, 0.00, 0.00),
+            ('wheel-drive forward roll', 3.0, 'wheel', 0.50, 0.00, 0.00),
+            ('walk-mode left side step', 2.8, 'walk', 0.00, 0.32, 0.00),
+            ('walk-mode right side step', 2.8, 'walk', 0.00, -0.32, 0.00),
+            ('hybrid rotate left in place', 2.6, 'hybrid', 0.00, 0.00, 0.85),
+            ('hybrid rotate right in place', 2.6, 'hybrid', 0.00, 0.00, -0.85),
+            ('slow reverse trot', 2.8, 'walk', -0.28, 0.00, 0.00),
+            ('show weighted stance', 1.6, 'hybrid', 0.00, 0.00, 0.00),
         ]
         self.total_duration = sum(segment[1] for segment in self.segments)
 
@@ -49,10 +58,14 @@ class DemoCommandNode(Node):
                 selected = segment
                 break
 
-        label, _, linear_x, linear_y, angular_z = selected
+        label, _, drive_mode, linear_x, linear_y, angular_z = selected
         if selected_index != self.last_segment_index:
             self.last_segment_index = selected_index
             self.get_logger().info(f'Demo segment: {label}')
+
+        mode_message = String()
+        mode_message.data = drive_mode
+        self.mode_publisher.publish(mode_message)
 
         command = Twist()
         command.linear.x = linear_x
